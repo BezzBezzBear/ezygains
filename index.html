@@ -1017,6 +1017,7 @@
       <div class="pill icon-pill" data-cat="Core" onclick="setCatFilter(this, 'Core')"><img src="assets/icons/core.PNG" class="pill-icon">Core</div>
       <div class="pill icon-pill" data-cat="Kettlebell" onclick="setCatFilter(this, 'Kettlebell')"><img src="assets/icons/kettlebells.PNG" class="pill-icon">Kettlebell</div>
       <div class="pill" data-cat="Favourites" onclick="setCatFilter(this, 'Favourites')">⭐ Favourites</div>
+      <div class="pill" data-cat="Cardio" onclick="setCatFilter(this, 'Cardio')">❤️ Cardio</div>
     </div>
 
     <div class="filter-row" id="equipFilters">
@@ -1109,6 +1110,14 @@
       </div>
     </div>
 
+    <div class="section-title" style="margin-top:16px">❤️ Health Trends</div>
+    <div id="healthTrends">
+      <div class="empty">
+        <div class="empty-title">No health data yet</div>
+        <p>Log heart rate & calories from your smartwatch after each workout</p>
+      </div>
+    </div>
+
     <div class="section-title" style="margin-top:16px">Achievements</div>
     <div id="achievementList"></div>
   </div>
@@ -1169,7 +1178,8 @@
     <div id="exPhotoSection" style="margin-bottom:12px"></div>
     <div class="flex gap-8">
       <button class="btn btn-outline" style="flex:1" onclick="toggleFavFromModal()">⭐ <span id="modalFavText">Favourite</span></button>
-      <button class="btn btn-fire" style="flex:1" onclick="addToActiveWorkout()">+ Add to Workout</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="openExerciseHistory(currentExerciseId)">📊 History</button>
+      <button class="btn btn-fire" style="flex:1" onclick="addToActiveWorkout()">+ Add</button>
     </div>
   </div>
 </div>
@@ -1261,7 +1271,15 @@
   </div>
 </div>
 
-<!-- MODAL: Workout Summary -->
+<!-- MODAL: Exercise History -->
+<div class="modal-overlay" id="modalExHistory" onclick="closeModalIfOverlay(event, 'modalExHistory')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="historyExName">EXERCISE HISTORY</div>
+    <p class="text-grey fs-12" style="margin-bottom:16px">Every session logged</p>
+    <div id="historyList" style="max-height:60vh;overflow-y:auto"></div>
+  </div>
+</div>
 <div class="modal-overlay" id="modalSummary">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -1290,6 +1308,35 @@
     </div>
     <div id="sumPRs" style="margin-bottom:14px"></div>
     <div id="sumSaveRoutine" style="margin-bottom:14px"></div>
+
+    <div class="card" style="margin-bottom:14px;border-color:rgba(255,106,0,0.3)">
+      <div class="section-title" style="margin-bottom:4px">⌚ Smartwatch Data</div>
+      <p class="fs-12 text-grey" style="margin-bottom:12px">Check your Apple Watch, Fitbit or smartwatch app and log your session stats below.</p>
+      <div class="grid-2" style="margin-bottom:10px">
+        <div class="form-group mb-0">
+          <label>Avg Heart Rate</label>
+          <div style="position:relative">
+            <input type="number" inputmode="numeric" id="sumHeartRate" placeholder="e.g. 142" style="padding-right:36px">
+            <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--fire1);font-size:14px">❤️</span>
+          </div>
+        </div>
+        <div class="form-group mb-0">
+          <label>Calories Burned</label>
+          <div style="position:relative">
+            <input type="number" inputmode="numeric" id="sumCalories" placeholder="e.g. 320" style="padding-right:36px">
+            <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--fire2);font-size:14px">🔥</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-group mb-0">
+        <label>Max Heart Rate</label>
+        <div style="position:relative">
+          <input type="number" inputmode="numeric" id="sumMaxHR" placeholder="e.g. 178" style="padding-right:36px">
+          <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--fire1);font-size:14px">📈</span>
+        </div>
+      </div>
+    </div>
+
     <button class="btn btn-fire" onclick="closeSummary()">💪 Awesome!</button>
   </div>
 </div>
@@ -1374,6 +1421,19 @@ const EXERCISES_DB = [
   { id:'e54', name:'Standing Barbell Curl', cat:'Arms', equip:'Barbell', icon:'🏋️', desc:'Classic bicep builder. Curl barbell from hanging to chest height.', sets:'4', reps:'8' },
   { id:'e55', name:'Preacher Curl', cat:'Arms', equip:'Machine', icon:'💪', desc:'Curl with arms supported on preacher bench. Eliminates cheating for maximum bicep isolation.', sets:'4', reps:'8' },
   { id:'e56', name:'Standing Hammer Curl', cat:'Arms', equip:'Dumbbell', icon:'💪', desc:'Neutral grip curl that builds brachialis and overall arm thickness.', sets:'4', reps:'10' },
+  // CARDIO
+  { id:'c1', name:'Rowing Machine', cat:'Cardio', equip:'Machine', icon:'🚣', desc:'Full body cardio on the rowing ergometer. Targets back, legs, and cardiovascular system.', sets:'1', reps:'20 min', isCardio:true },
+  { id:'c2', name:'Spinning / Indoor Bike', cat:'Cardio', equip:'Machine', icon:'🚴', desc:'High intensity cycling on stationary bike. Excellent for legs and cardiovascular fitness.', sets:'1', reps:'30 min', isCardio:true },
+  { id:'c3', name:'Treadmill Run', cat:'Cardio', equip:'Machine', icon:'🏃', desc:'Running on a treadmill. Control speed and incline to vary intensity.', sets:'1', reps:'20 min', isCardio:true },
+  { id:'c4', name:'Treadmill Walk (Incline)', cat:'Cardio', equip:'Machine', icon:'🏃', desc:'Incline walking for low impact cardio. Great for fat burn without joint stress.', sets:'1', reps:'30 min', isCardio:true },
+  { id:'c5', name:'Stair Climber', cat:'Cardio', equip:'Machine', icon:'🪜', desc:'Step climbing machine targeting glutes, quads, and cardio endurance.', sets:'1', reps:'20 min', isCardio:true },
+  { id:'c6', name:'Cross Trainer / Elliptical', cat:'Cardio', equip:'Machine', icon:'⭕', desc:'Low impact full body cardio. Easy on joints while burning serious calories.', sets:'1', reps:'30 min', isCardio:true },
+  { id:'c7', name:'Ski Erg', cat:'Cardio', equip:'Machine', icon:'⛷️', desc:'Upper body dominant cardio mimicking cross country skiing. Targets shoulders and core.', sets:'1', reps:'10 min', isCardio:true },
+  { id:'c8', name:'Assault / Air Bike', cat:'Cardio', equip:'Machine', icon:'💨', desc:'Fan resistance bike using both arms and legs. Intensity scales with effort.', sets:'1', reps:'10 min', isCardio:true },
+  { id:'c9', name:'Battle Ropes', cat:'Cardio', equip:'Bodyweight', icon:'🪢', desc:'Wave heavy ropes for intense upper body cardio. Shoulders, arms, and core.', sets:'5', reps:'30 sec', isCardio:true },
+  { id:'c10', name:'Jump Rope', cat:'Cardio', equip:'Bodyweight', icon:'🪃', desc:'Classic skipping cardio. Improves coordination and burns calories fast.', sets:'5', reps:'1 min', isCardio:true },
+  { id:'c11', name:'Box Jumps', cat:'Cardio', equip:'Bodyweight', icon:'📦', desc:'Explosive jump onto a box. Builds power while elevating heart rate.', sets:'4', reps:'10', isCardio:false },
+  { id:'c12', name:'Burpees', cat:'Cardio', equip:'Bodyweight', icon:'🔥', desc:'Full body movement — squat, plank, push-up and jump. Maximum calorie burn.', sets:'4', reps:'15', isCardio:false },
 ];
 
 const BUILTIN_ROUTINES = [
@@ -1549,6 +1609,11 @@ function renderHomeScreen() {
           <div>
             <div class="font-cond fw-700 fs-18">${w.name || 'Workout'}</div>
             <div class="text-grey fs-12">${new Date(w.date).toLocaleDateString()} · ${w.duration}min · ${w.sets} sets</div>
+            ${w.avgHR || w.calories ? `<div class="fs-12" style="margin-top:3px">
+              ${w.avgHR ? `<span style="color:var(--fire1)">❤️ ${w.avgHR}bpm avg</span>` : ''}
+              ${w.maxHR ? `<span style="color:var(--fire1);margin-left:8px">📈 ${w.maxHR}bpm max</span>` : ''}
+              ${w.calories ? `<span style="color:var(--fire2);margin-left:8px">🔥 ${w.calories} kcal</span>` : ''}
+            </div>` : ''}
           </div>
           <div class="font-bebas text-fire" style="font-size:22px">+${w.xp}xp</div>
         </div>
@@ -1715,6 +1780,57 @@ function saveExerciseName(id) {
     showToast('✅ Name saved!');
     renderExerciseList();
   }
+}
+
+function openExerciseHistory(exId) {
+  const ex = state.exercises.find(e => e.id === exId);
+  if (!ex) return;
+
+  document.getElementById('historyExName').textContent = ex.name.toUpperCase();
+
+  // Find all workouts that included this exercise
+  const sessions = state.workoutHistory
+    .filter(w => w.exerciseDetail && w.exerciseDetail.some(e => e.exId === exId))
+    .map(w => ({
+      date: w.date,
+      workoutName: w.name,
+      detail: w.exerciseDetail.find(e => e.exId === exId)
+    }))
+    .reverse(); // Most recent first
+
+  if (sessions.length === 0) {
+    document.getElementById('historyList').innerHTML = `
+      <div class="empty">
+        <div class="empty-title">No history yet</div>
+        <p>Complete a workout with this exercise to start tracking</p>
+      </div>`;
+  } else {
+    const isCardio = ex.isCardio;
+    document.getElementById('historyList').innerHTML = sessions.map((s, i) => {
+      const isLast = i === 0;
+      const setRows = s.detail.sets.map((set, si) => {
+        if (isCardio) {
+          return `<div class="fs-13" style="padding:3px 0;color:var(--white)">Session ${si+1}: ${set.duration || '—'} mins · ${set.distLevel || '—'}</div>`;
+        }
+        return `<div class="fs-13" style="padding:3px 0;color:var(--white)">Set ${si+1}: ${set.weight || '—'}kg × ${set.reps || '—'} reps</div>`;
+      }).join('');
+
+      return `
+        <div class="card" style="margin-bottom:10px;${isLast ? 'border-color:rgba(255,106,0,0.4)' : ''}">
+          <div class="flex justify-between items-center" style="margin-bottom:8px">
+            <div>
+              <div class="font-cond fw-700 fs-14">${new Date(s.date).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})}</div>
+              <div class="fs-12 text-grey">${s.workoutName}</div>
+            </div>
+            ${isLast ? `<span class="exercise-cat">Last session</span>` : ''}
+          </div>
+          ${setRows}
+        </div>`;
+    }).join('');
+  }
+
+  closeModal('modalExercise');
+  openModal('modalExHistory');
 }
 
 function toggleFavFromModal() {
@@ -1884,35 +2000,80 @@ function renderActiveExercises() {
   const totalDone = state.currentWorkout.exercises.reduce((acc, ex) => acc + ex.sets.filter(s => s.done).length, 0);
   document.getElementById('setsCompleted').textContent = totalDone;
 
-  el.innerHTML = state.currentWorkout.exercises.map((ex, ei) => `
+  el.innerHTML = state.currentWorkout.exercises.map((ex, ei) => {
+    const exData = state.exercises.find(e => e.id === ex.exId);
+    const isCardio = exData?.isCardio || false;
+
+    const headers = isCardio
+      ? `<div class="fs-12 text-grey font-cond" style="letter-spacing:1px">SESSION</div>
+         <div class="fs-12 text-grey font-cond" style="letter-spacing:1px;text-align:center">MINS</div>
+         <div class="fs-12 text-grey font-cond" style="letter-spacing:1px;text-align:center">DIST/LVL</div>
+         <div></div>`
+      : `<div class="fs-12 text-grey font-cond" style="letter-spacing:1px">SET</div>
+         <div class="fs-12 text-grey font-cond" style="letter-spacing:1px;text-align:center">KG</div>
+         <div class="fs-12 text-grey font-cond" style="letter-spacing:1px;text-align:center">REPS</div>
+         <div></div>`;
+
+    const setRows = ex.sets.map((set, si) => {
+      if (isCardio) {
+        return `
+        <div class="set-row">
+          <div class="set-num">${si + 1}</div>
+          <input class="set-input" type="number" inputmode="decimal" placeholder="mins" step="1" min="0"
+            value="${set.duration || ''}" onchange="updateSet(${ei},${si},'duration',this.value)"
+            ${set.done ? 'disabled' : ''} style="${set.done ? 'opacity:0.5' : ''}">
+          <input class="set-input" type="text" inputmode="decimal" placeholder="km/lvl"
+            value="${set.distLevel || ''}" onchange="updateSet(${ei},${si},'distLevel',this.value)"
+            ${set.done ? 'disabled' : ''} style="${set.done ? 'opacity:0.5' : ''}">
+          <button class="set-done ${set.done ? 'completed' : ''}" onclick="toggleSetDone(${ei},${si})">
+            ${set.done ? '✓' : '○'}
+          </button>
+        </div>`;
+      } else {
+        return `
+        <div class="set-row">
+          <div class="set-num">${si + 1}</div>
+          <input class="set-input" type="number" inputmode="decimal" placeholder="kg" step="0.5" min="0"
+            value="${set.weight || ''}" onchange="updateSet(${ei},${si},'weight',this.value)"
+            ${set.done ? 'disabled' : ''} style="${set.done ? 'opacity:0.5' : ''}">
+          <input class="set-input" type="number" inputmode="numeric" placeholder="reps"
+            value="${set.reps || ''}" onchange="updateSet(${ei},${si},'reps',this.value)"
+            ${set.done ? 'disabled' : ''} style="${set.done ? 'opacity:0.5' : ''}">
+          <button class="set-done ${set.done ? 'completed' : ''}" onclick="toggleSetDone(${ei},${si})">
+            ${set.done ? '✓' : '○'}
+          </button>
+        </div>`;
+      }
+    }).join('');
+
+    // Last session preview
+    const lastSession = state.workoutHistory
+      .filter(w => w.exerciseDetail && w.exerciseDetail.some(e => e.exId === ex.exId))
+      .slice(-1)[0];
+    const lastDetail = lastSession?.exerciseDetail?.find(e => e.exId === ex.exId);
+    const lastSessionHtml = lastDetail ? `
+      <div style="margin-bottom:10px;padding:8px;background:var(--card2);border-radius:8px">
+        <div class="fs-12 text-grey font-cond" style="letter-spacing:1px;margin-bottom:4px">LAST SESSION · ${new Date(lastSession.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</div>
+        ${lastDetail.sets.map((s,i) => isCardio
+          ? `<div class="fs-12" style="color:var(--grey)">Session ${i+1}: ${s.duration||'—'}mins · ${s.distLevel||'—'}</div>`
+          : `<div class="fs-12" style="color:var(--grey)">Set ${i+1}: ${s.weight||'—'}kg × ${s.reps||'—'} reps</div>`
+        ).join('')}
+      </div>` : '';
+
+    return `
     <div class="card card-fire" style="margin-bottom:12px">
       <div class="flex items-center justify-between" style="margin-bottom:12px">
         <div class="font-cond fw-700 fs-18">${ex.name}</div>
         <button class="btn btn-ghost btn-sm" onclick="removeExerciseFromWorkout(${ei})">✕</button>
       </div>
+      ${lastSessionHtml}
       <div style="display:grid;grid-template-columns:32px 1fr 1fr auto;gap:8px;align-items:center;margin-bottom:6px">
-        <div class="fs-12 text-grey font-cond" style="letter-spacing:1px">SET</div>
-        <div class="fs-12 text-grey font-cond" style="letter-spacing:1px;text-align:center">KG</div>
-        <div class="fs-12 text-grey font-cond" style="letter-spacing:1px;text-align:center">REPS</div>
-        <div></div>
+        ${headers}
       </div>
-      ${ex.sets.map((set, si) => `
-        <div class="set-row">
-          <div class="set-num">${si + 1}</div>
-          <input class="set-input" type="number" inputmode="decimal" placeholder="kg" step="0.5" min="0"
-            value="${set.weight}" onchange="updateSet(${ei},${si},'weight',this.value)"
-            ${set.done ? 'disabled' : ''} style="${set.done ? 'opacity:0.5' : ''}">
-          <input class="set-input" type="number" inputmode="numeric" placeholder="reps"
-            value="${set.reps}" onchange="updateSet(${ei},${si},'reps',this.value)"
-            ${set.done ? 'disabled' : ''} style="${set.done ? 'opacity:0.5' : ''}">
-          <button class="set-done ${set.done ? 'completed' : ''}" onclick="toggleSetDone(${ei},${si})">
-            ${set.done ? '✓' : '○'}
-          </button>
-        </div>
-      `).join('')}
-      <button class="btn btn-ghost btn-sm mt-8" onclick="addSet(${ei})">+ Add Set</button>
-    </div>
-  `).join('') + `
+      ${setRows}
+      <button class="btn btn-ghost btn-sm mt-8" onclick="addSet(${ei})">+ Add ${isCardio ? 'Session' : 'Set'}</button>
+    </div>`;
+  }).join('') + `
   <div class="flex gap-8" style="margin-top:8px;margin-bottom:8px">
     <button class="btn btn-ghost" style="flex:1" onclick="openExercisePicker()">+ Add Exercise</button>
     <button class="btn btn-fire" style="flex:1" onclick="finishWorkout()">✅ Finish</button>
@@ -1931,6 +2092,12 @@ function toggleSetDone(ei, si) {
   if (set.done) {
     state.currentWorkout.completedSets = (state.currentWorkout.completedSets || 0) + 1;
     checkPR(state.currentWorkout.exercises[ei].exId, parseFloat(set.weight), parseInt(set.reps));
+    // Weight suggestion
+    const reps = parseInt(set.reps);
+    const weight = parseFloat(set.weight);
+    if (reps >= 10 && weight > 0) {
+      setTimeout(() => showToast('💪 10+ reps — consider going heavier next time!'), 300);
+    }
   }
   renderActiveExercises();
 }
@@ -1992,7 +2159,7 @@ function finishWorkout() {
   else if (last !== today) state.streak = 1;
   state.lastWorkoutDate = new Date().toISOString();
 
-  // Save workout
+  // Save workout - store full exercise detail for history tracking
   const record = {
     id: w.id,
     name: w.name,
@@ -2001,6 +2168,11 @@ function finishWorkout() {
     sets: completedSets,
     exercises: w.exercises.map(e => e.name),
     exerciseIds: w.exercises.map(e => e.exId),
+    exerciseDetail: w.exercises.map(e => ({
+      exId: e.exId,
+      name: e.name,
+      sets: e.sets.filter(s => s.done)
+    })),
     xp: xpEarned
   };
   state.workoutHistory.push(record);
@@ -2021,9 +2193,14 @@ function finishWorkout() {
     `<div class="font-cond fw-700 fs-14" style="padding:4px 0;border-bottom:1px solid var(--border)">${n}</div>`
   ).join('');
 
-  // PRs in summary
-  const prSection = document.getElementById('sumPRs');
-  const newPRs = w.exercises.filter(ex => {
+  // Progression tips — exercises where 10+ reps were hit
+  const progressionTips = w.exercises.filter(ex => {
+    const exData = state.exercises.find(e => e.id === ex.exId);
+    if (exData?.isCardio) return false;
+    return ex.sets.some(s => s.done && parseInt(s.reps) >= 10 && parseFloat(s.weight) > 0);
+  });
+
+  const prSection = document.getElementById('sumPRs');  const newPRs = w.exercises.filter(ex => {
     const pr = state.prs[ex.exId];
     return pr && new Date(pr.date) > new Date(Date.now() - 60000);
   });
@@ -2033,6 +2210,15 @@ function finishWorkout() {
     </div>`;
   } else {
     prSection.innerHTML = '';
+  }
+
+  // Progression tips
+  if (progressionTips.length > 0) {
+    prSection.innerHTML += `<div class="card" style="border-color:rgba(57,211,83,0.3);background:linear-gradient(135deg,var(--card),rgba(57,211,83,0.05));margin-top:10px">
+      <div class="section-title" style="color:var(--green);margin-bottom:8px">📈 Ready to Progress!</div>
+      <p class="fs-14 text-grey" style="margin-bottom:8px">You hit 10+ reps on these — you may have room to increase the weight next session:</p>
+      ${progressionTips.map(ex => `<div class="font-cond fw-700 fs-14" style="color:var(--green);padding:3px 0">✓ ${ex.name}</div>`).join('')}
+    </div>`;
   }
 
   // Offer to save as default routine
@@ -2081,6 +2267,17 @@ function saveWorkoutAsRoutine() {
 }
 
 function closeSummary() {
+  // Save smartwatch data if entered
+  const hr = document.getElementById('sumHeartRate')?.value;
+  const maxHr = document.getElementById('sumMaxHR')?.value;
+  const cals = document.getElementById('sumCalories')?.value;
+  const lastWorkout = state.workoutHistory[state.workoutHistory.length - 1];
+  if (lastWorkout) {
+    if (hr) lastWorkout.avgHR = parseInt(hr);
+    if (maxHr) lastWorkout.maxHR = parseInt(maxHr);
+    if (cals) lastWorkout.calories = parseInt(cals);
+    saveState();
+  }
   closeModal('modalSummary');
   showScreen('home');
   renderHomeScreen();
@@ -2231,19 +2428,17 @@ function renderRoutineBuilder() {
     const catIcon = ex ? CAT_ICONS[ex.cat] : null;
     const thumb = catIcon
       ? `<img src="${catIcon}" style="width:32px;height:32px;border-radius:6px;object-fit:cover;background:#000">`
-      : `<span style="font-size:20px">${ex?.icon || '💪'}</span>`;
+      : `<span style="font-size:18px">${ex?.icon || '💪'}</span>`;
     return ex ? `
       <div class="flex items-center gap-8" style="padding:10px 0;border-bottom:1px solid var(--border)">
         <div style="flex-shrink:0">${thumb}</div>
         <div style="flex:1;min-width:0">
-          <div
-            contenteditable="true"
-            class="font-cond fw-700 fs-14"
-            style="outline:none;border-bottom:1px dashed var(--fire2);padding-bottom:2px"
-            onblur="renameRoutineExercise('${id}', this.textContent)"
-            title="Tap to rename"
-          >${ex.name}</div>
-          <div class="fs-12 text-grey">${ex.cat} · ${ex.equip} · tap name to rename</div>
+          <input type="text"
+            value="${ex.name}"
+            style="background:transparent;border:none;border-bottom:1px dashed var(--fire2);border-radius:0;padding:2px 0;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--white);width:100%"
+            onchange="renameRoutineExercise('${id}', this.value)"
+            title="Edit exercise name">
+          <div class="fs-12 text-grey" style="margin-top:2px">${ex.cat} · ${ex.equip}</div>
         </div>
         <button class="btn btn-ghost btn-sm" onclick="removeFromRoutineBuilder(${i})">✕</button>
       </div>` : '';
@@ -2384,6 +2579,41 @@ function renderProgressScreen() {
           </div>
         </div>` : '';
     }).join('');
+  }
+
+  // Health Trends
+  const healthEl = document.getElementById('healthTrends');
+  const workoutsWithHealth = state.workoutHistory.filter(w => w.avgHR || w.calories);
+  if (workoutsWithHealth.length === 0) {
+    healthEl.innerHTML = `<div class="empty"><div class="empty-title">No health data yet</div><p>Log heart rate & calories from your smartwatch after each workout</p></div>`;
+  } else {
+    const avgHRAll = workoutsWithHealth.filter(w => w.avgHR).map(w => w.avgHR);
+    const maxHRAll = workoutsWithHealth.filter(w => w.maxHR).map(w => w.maxHR);
+    const calsAll = workoutsWithHealth.filter(w => w.calories).map(w => w.calories);
+    const avg = arr => arr.length ? Math.round(arr.reduce((a,b) => a+b, 0) / arr.length) : null;
+    const best = arr => arr.length ? Math.max(...arr) : null;
+
+    healthEl.innerHTML = `
+      <div class="grid-2" style="margin-bottom:14px">
+        ${avgHRAll.length ? `<div class="stat-card"><div class="stat-number" style="color:var(--fire1)">${avg(avgHRAll)}</div><div class="stat-label">Avg HR (bpm)</div></div>` : ''}
+        ${maxHRAll.length ? `<div class="stat-card"><div class="stat-number" style="color:var(--fire1)">${best(maxHRAll)}</div><div class="stat-label">Peak HR (bpm)</div></div>` : ''}
+        ${calsAll.length ? `<div class="stat-card"><div class="stat-number" style="color:var(--fire2)">${avg(calsAll)}</div><div class="stat-label">Avg Calories</div></div>` : ''}
+        ${calsAll.length ? `<div class="stat-card"><div class="stat-number" style="color:var(--fire2)">${calsAll.reduce((a,b)=>a+b,0).toLocaleString()}</div><div class="stat-label">Total Calories</div></div>` : ''}
+      </div>
+      <div class="section-title" style="margin-bottom:8px">All Sessions (${workoutsWithHealth.length})</div>
+      ${[...workoutsWithHealth].reverse().map(w => `
+        <div class="card" style="margin-bottom:8px">
+          <div class="flex justify-between items-center">
+            <div>
+              <div class="font-cond fw-700 fs-14">${w.name || 'Workout'}</div>
+              <div class="fs-12 text-grey">${new Date(w.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})} · ${w.duration}min</div>
+            </div>
+            <div style="text-align:right">
+              ${w.avgHR ? `<div class="fs-12" style="color:var(--fire1)">❤️ ${w.avgHR}${w.maxHR ? ` / ${w.maxHR}` : ''} bpm</div>` : ''}
+              ${w.calories ? `<div class="fs-12" style="color:var(--fire2)">🔥 ${w.calories} kcal</div>` : ''}
+            </div>
+          </div>
+        </div>`).join('')}`;
   }
 
   // Achievements
