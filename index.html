@@ -881,7 +881,38 @@
     100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
   }
 
-  /* UTILS */
+  .icon-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px 4px 4px;
+  }
+
+  .pill-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    object-fit: cover;
+    background: #000;
+    flex-shrink: 0;
+  }
+
+  .cat-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+    object-fit: cover;
+    background: #000;
+    flex-shrink: 0;
+  }
+
+  .squat-video {
+    width: 100%;
+    border-radius: var(--radius);
+    max-height: 220px;
+    object-fit: cover;
+    display: block;
+  }
   .flex { display: flex; }
   .flex-col { flex-direction: column; }
   .items-center { align-items: center; }
@@ -964,6 +995,12 @@
         <p>Smash your first session above!</p>
       </div>
     </div>
+
+    <div style="margin-top:20px;border-radius:var(--radius);overflow:hidden">
+      <video autoplay loop muted playsinline style="width:100%;display:block;border-radius:var(--radius)">
+        <source src="https://raw.githubusercontent.com/BezzBezzBear/ezygains/main/assets/video/squat%20vid.MP4" type="video/mp4">
+      </video>
+    </div>
   </div>
 
   <!-- EXERCISES SCREEN -->
@@ -978,13 +1015,13 @@
 
     <div class="filter-row" id="catFilters">
       <div class="pill active" data-cat="all" onclick="setCatFilter(this, 'all')">All</div>
-      <div class="pill" data-cat="Legs" onclick="setCatFilter(this, 'Legs')">🦵 Legs</div>
-      <div class="pill" data-cat="Arms" onclick="setCatFilter(this, 'Arms')">💪 Arms</div>
-      <div class="pill" data-cat="Chest" onclick="setCatFilter(this, 'Chest')">🫀 Chest</div>
-      <div class="pill" data-cat="Back" onclick="setCatFilter(this, 'Back')">🔙 Back</div>
-      <div class="pill" data-cat="Shoulders" onclick="setCatFilter(this, 'Shoulders')">🏔️ Shoulders</div>
-      <div class="pill" data-cat="Core" onclick="setCatFilter(this, 'Core')">🎯 Core</div>
-      <div class="pill" data-cat="Kettlebell" onclick="setCatFilter(this, 'Kettlebell')">🔔 Kettlebell</div>
+      <div class="pill icon-pill" data-cat="Legs" onclick="setCatFilter(this, 'Legs')"><img src="https://raw.githubusercontent.com/BezzBezzBear/ezygains/main/assets/icons/legs.PNG" class="pill-icon">Legs</div>
+      <div class="pill icon-pill" data-cat="Arms" onclick="setCatFilter(this, 'Arms')"><img src="https://raw.githubusercontent.com/BezzBezzBear/ezygains/main/assets/icons/arms.PNG" class="pill-icon">Arms</div>
+      <div class="pill icon-pill" data-cat="Chest" onclick="setCatFilter(this, 'Chest')"><img src="https://raw.githubusercontent.com/BezzBezzBear/ezygains/main/assets/icons/chest.PNG" class="pill-icon">Chest</div>
+      <div class="pill icon-pill" data-cat="Back" onclick="setCatFilter(this, 'Back')"><img src="https://raw.githubusercontent.com/BezzBezzBear/ezygains/main/assets/icons/back.PNG" class="pill-icon">Back</div>
+      <div class="pill icon-pill" data-cat="Shoulders" onclick="setCatFilter(this, 'Shoulders')"><img src="https://raw.githubusercontent.com/BezzBezzBear/ezygains/main/assets/icons/shoulders.PNG" class="pill-icon">Shoulders</div>
+      <div class="pill icon-pill" data-cat="Core" onclick="setCatFilter(this, 'Core')"><img src="https://raw.githubusercontent.com/BezzBezzBear/ezygains/main/assets/icons/core.PNG" class="pill-icon">Core</div>
+      <div class="pill icon-pill" data-cat="Kettlebell" onclick="setCatFilter(this, 'Kettlebell')"><img src="https://raw.githubusercontent.com/BezzBezzBear/ezygains/main/assets/icons/kettlebells.PNG" class="pill-icon">Kettlebell</div>
       <div class="pill" data-cat="Favourites" onclick="setCatFilter(this, 'Favourites')">⭐ Favourites</div>
     </div>
 
@@ -1258,12 +1295,25 @@
       <div id="sumExercises"></div>
     </div>
     <div id="sumPRs" style="margin-bottom:14px"></div>
+    <div id="sumSaveRoutine" style="margin-bottom:14px"></div>
     <button class="btn btn-fire" onclick="closeSummary()">💪 Awesome!</button>
   </div>
 </div>
 
 <script>
-// ===== DATA =====
+const BASE = 'https://raw.githubusercontent.com/BezzBezzBear/ezygains/main/assets/icons/';
+const CAT_ICONS = {
+  'Legs':      BASE + 'legs.PNG',
+  'Arms':      BASE + 'arms.PNG',
+  'Chest':     BASE + 'chest.PNG',
+  'Back':      BASE + 'back.PNG',
+  'Shoulders': BASE + 'shoulders.PNG',
+  'Core':      BASE + 'core.PNG',
+  'Kettlebell':BASE + 'kettlebells.PNG',
+};
+const SQUAT_VIDEO = 'https://raw.githubusercontent.com/BezzBezzBear/ezygains/main/assets/video/squat%20vid.MP4';
+
+
 
 const EXERCISES_DB = [
   // LEGS - Machines
@@ -1412,7 +1462,7 @@ function saveState() {
     const toSave = { ...state };
     delete toSave.workoutTimer;
     localStorage.setItem('ezygains_state', JSON.stringify(toSave));
-  } catch(e) {}
+  } catch(e) { console.warn('Storage unavailable:', e); }
 }
 
 function loadState() {
@@ -1421,9 +1471,11 @@ function loadState() {
     if (saved) {
       const parsed = JSON.parse(saved);
       state = { ...state, ...parsed };
-      state.exercises = [...EXERCISES_DB, ...(parsed.customExercises || [])];
+      // Re-merge built-in exercises with any custom ones
+      const customs = parsed.customExercises || [];
+      state.exercises = [...EXERCISES_DB, ...customs];
     }
-  } catch(e) {}
+  } catch(e) { console.warn('Could not load state:', e); }
 }
 
 // ===== NAVIGATION =====
@@ -1527,10 +1579,16 @@ function renderExerciseList() {
   el.innerHTML = list.map(ex => {
     const isFav = state.favourites.includes(ex.id);
     const photo = state.photos[ex.id];
+    const catIcon = CAT_ICONS[ex.cat];
+    const thumbContent = photo
+      ? `<img src="${photo}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`
+      : catIcon
+        ? `<img src="${catIcon}" alt="${ex.cat}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;background:#000">`
+        : ex.icon;
     return `
     <div class="exercise-card" onclick="openExerciseModal('${ex.id}')">
-      <div class="exercise-thumb">
-        ${photo ? `<img src="${photo}" alt="">` : ex.icon}
+      <div class="exercise-thumb" style="background:#000">
+        ${thumbContent}
       </div>
       <div class="exercise-info">
         <div class="exercise-name">${ex.name}</div>
@@ -1577,8 +1635,19 @@ function openExerciseModal(id) {
   if (!ex) return;
 
   document.getElementById('modalExName').textContent = ex.name;
-  document.getElementById('modalExIcon').textContent = ex.icon || '💪';
-  document.getElementById('modalExMeta').innerHTML = `<span class="exercise-cat">${ex.cat}</span><span>${ex.equip}</span>`;
+  document.getElementById('modalExName').contentEditable = true;
+  document.getElementById('modalExName').style.outline = 'none';
+  document.getElementById('modalExName').style.borderBottom = '1px dashed var(--fire2)';
+  document.getElementById('modalExName').title = 'Tap to edit name';
+  document.getElementById('modalExName').onblur = () => saveExerciseName(id);
+  const catIcon = CAT_ICONS[ex.cat];
+  const iconEl = document.getElementById('modalExIcon');
+  if (catIcon) {
+    iconEl.innerHTML = `<img src="${catIcon}" alt="${ex.cat}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;background:#000">`;
+  } else {
+    iconEl.textContent = ex.icon || '💪';
+  }
+  document.getElementById('modalExMeta').innerHTML = `<span class="exercise-cat">${ex.cat}</span><span>${ex.equip}</span><span class="text-fire fs-12" style="opacity:0.7">✏️ tap name to edit</span>`;
   document.getElementById('modalExDesc').textContent = ex.desc || 'No description available.';
   document.getElementById('modalExSets').textContent = ex.sets || '3';
   document.getElementById('modalExReps').textContent = ex.reps || '10-12';
@@ -1626,7 +1695,30 @@ function saveExercisePhoto(id, input) {
   reader.readAsDataURL(file);
 }
 
-function toggleFavFromModal() {
+function saveExerciseName(id) {
+  const el = document.getElementById('modalExName');
+  const newName = el.textContent.trim();
+  if (!newName) return;
+  // Update in exercises array
+  const ex = state.exercises.find(e => e.id === id);
+  if (ex) {
+    ex.name = newName;
+    // Also update in customExercises if it's custom
+    if (state.customExercises) {
+      const custom = state.customExercises.find(e => e.id === id);
+      if (custom) custom.name = newName;
+    }
+    // Update in any active workout
+    if (state.currentWorkout) {
+      state.currentWorkout.exercises.forEach(e => { if (e.exId === id) e.name = newName; });
+    }
+    saveState();
+    showToast('✅ Name saved!');
+    renderExerciseList();
+  }
+}
+
+
   toggleFav(currentExerciseId);
   document.getElementById('modalFavText').textContent = state.favourites.includes(currentExerciseId) ? 'Unfavourite' : 'Favourite';
 }
@@ -1808,7 +1900,7 @@ function renderActiveExercises() {
       ${ex.sets.map((set, si) => `
         <div class="set-row">
           <div class="set-num">${si + 1}</div>
-          <input class="set-input" type="number" inputmode="decimal" placeholder="kg"
+          <input class="set-input" type="number" inputmode="decimal" placeholder="kg" step="0.5" min="0"
             value="${set.weight}" onchange="updateSet(${ei},${si},'weight',this.value)"
             ${set.done ? 'disabled' : ''} style="${set.done ? 'opacity:0.5' : ''}">
           <input class="set-input" type="number" inputmode="numeric" placeholder="reps"
@@ -1821,7 +1913,11 @@ function renderActiveExercises() {
       `).join('')}
       <button class="btn btn-ghost btn-sm mt-8" onclick="addSet(${ei})">+ Add Set</button>
     </div>
-  `).join('');
+  `).join('') + `
+  <div class="flex gap-8" style="margin-top:8px;margin-bottom:8px">
+    <button class="btn btn-ghost" style="flex:1" onclick="openExercisePicker()">+ Add Exercise</button>
+    <button class="btn btn-fire" style="flex:1" onclick="finishWorkout()">✅ Finish</button>
+  </div>`;
 }
 
 function updateSet(ei, si, field, val) {
@@ -1905,6 +2001,7 @@ function finishWorkout() {
     duration,
     sets: completedSets,
     exercises: w.exercises.map(e => e.name),
+    exerciseIds: w.exercises.map(e => e.exId),
     xp: xpEarned
   };
   state.workoutHistory.push(record);
@@ -1939,11 +2036,54 @@ function finishWorkout() {
     prSection.innerHTML = '';
   }
 
+  // Offer to save as default routine
+  const exerciseIds = w.exercises.map(e => e.exId);
+  const existingMatch = state.routines.find(r =>
+    r.exercises.length === exerciseIds.length &&
+    r.exercises.every((id, i) => id === exerciseIds[i])
+  );
+  const saveRoutineSection = document.getElementById('sumSaveRoutine');
+  if (!existingMatch && exerciseIds.length > 0) {
+    saveRoutineSection.innerHTML = `
+      <div class="card card-fire" style="margin-bottom:14px">
+        <div class="section-title" style="margin-bottom:8px">💾 Save This Workout?</div>
+        <p class="fs-14 text-grey" style="margin-bottom:10px">Save as a routine to use next time</p>
+        <input type="text" id="saveRoutineNameInput" placeholder="Name this routine..." value="${w.name}" style="margin-bottom:8px">
+        <button class="btn btn-fire" onclick="saveWorkoutAsRoutine()">Save as Routine</button>
+      </div>`;
+  } else {
+    saveRoutineSection.innerHTML = '';
+  }
+
   openModal('modalSummary');
   launchConfetti();
 }
 
-function closeSummary() {
+function saveWorkoutAsRoutine() {
+  const nameInput = document.getElementById('saveRoutineNameInput');
+  const name = nameInput?.value.trim() || 'My Routine';
+  const lastWorkout = state.workoutHistory[state.workoutHistory.length - 1];
+  if (!lastWorkout) return;
+
+  // We need exercise IDs - store them on the record
+  const routine = {
+    id: 'r_' + Date.now(),
+    name,
+    desc: 'Saved from workout',
+    exercises: lastWorkout.exerciseIds || [],
+    isDefault: true
+  };
+
+  // Clear previous defaults of same name
+  state.routines.forEach(r => { if (r.name === name) r.isDefault = false; });
+  state.routines.push(routine);
+  state.routinesCreated++;
+  saveState();
+  showToast('✅ Saved as default routine!');
+  document.getElementById('sumSaveRoutine').innerHTML = `<div class="card" style="margin-bottom:14px;text-align:center"><div style="font-size:28px">✅</div><div class="font-cond fw-700">Routine Saved!</div></div>`;
+}
+
+
   closeModal('modalSummary');
   showScreen('home');
   renderHomeScreen();
@@ -1995,15 +2135,20 @@ function filterPicker() {
     return matchSearch && matchCat;
   });
 
-  document.getElementById('pickerList').innerHTML = list.map(ex => `
+  document.getElementById('pickerList').innerHTML = list.map(ex => {
+    const catIcon = CAT_ICONS[ex.cat];
+    const thumb = catIcon
+      ? `<img src="${catIcon}" alt="${ex.cat}" style="width:44px;height:44px;object-fit:cover;border-radius:8px;background:#000">`
+      : `<span style="font-size:20px">${ex.icon}</span>`;
+    return `
     <div class="exercise-card" onclick="pickExercise('${ex.id}')">
-      <div class="exercise-thumb" style="width:44px;height:44px;font-size:20px">${ex.icon}</div>
+      <div class="exercise-thumb" style="width:44px;height:44px;background:#000">${thumb}</div>
       <div class="exercise-info">
         <div class="exercise-name">${ex.name}</div>
         <div class="exercise-meta"><span class="exercise-cat">${ex.cat}</span><span>${ex.equip}</span></div>
       </div>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 function pickExercise(id) {
@@ -2040,14 +2185,15 @@ function renderMyRoutines() {
         <div class="routine-name">${r.name}</div>
         <div class="flex gap-8">
           <button class="btn btn-fire btn-sm" onclick="startRoutine('${r.id}')">▶ Start</button>
+          <button class="btn btn-ghost btn-sm" onclick="editRoutine('${r.id}')">✏️</button>
           <button class="btn btn-ghost btn-sm" onclick="deleteRoutine('${r.id}')">✕</button>
         </div>
       </div>
-      <div class="routine-meta">${r.desc || ''} · ${r.exercises.length} exercises</div>
+      <div class="routine-meta">${r.desc || ''} · ${r.exercises.length} exercises ${r.isDefault ? '· <span style="color:var(--fire2)">⭐ Default</span>' : ''}</div>
       <div class="routine-exercises">
         ${r.exercises.map(id => {
           const ex = state.exercises.find(e => e.id === id);
-          return ex ? `<span class="routine-tag">${ex.name}</span>` : '';
+          return ex ? `<span class="routine-tag">${ex.name} <span onclick="removeExFromRoutine('${r.id}','${id}')" style="color:var(--fire1);cursor:pointer;margin-left:2px">✕</span></span>` : '';
         }).join('')}
       </div>
     </div>
@@ -2072,6 +2218,7 @@ function openCreateRoutineModal() {
   document.getElementById('newRoutineName').value = '';
   document.getElementById('newRoutineDesc').value = '';
   routineBuilderExercises = [];
+  window._editingRoutineId = null;
   renderRoutineBuilder();
   openModal('modalCreateRoutine');
 }
@@ -2103,21 +2250,54 @@ function saveRoutine() {
   if (!name) { showToast('Please enter a routine name'); return; }
   if (routineBuilderExercises.length === 0) { showToast('Add at least one exercise'); return; }
 
-  const routine = {
-    id: 'r_' + Date.now(),
-    name,
-    desc: document.getElementById('newRoutineDesc').value.trim(),
-    exercises: [...routineBuilderExercises]
-  };
-  state.routines.push(routine);
-  state.routinesCreated++;
+  if (window._editingRoutineId) {
+    // Update existing routine
+    const routine = state.routines.find(r => r.id === window._editingRoutineId);
+    if (routine) {
+      routine.name = name;
+      routine.desc = document.getElementById('newRoutineDesc').value.trim();
+      routine.exercises = [...routineBuilderExercises];
+    }
+    window._editingRoutineId = null;
+    showToast('✅ Routine updated!');
+  } else {
+    const routine = {
+      id: 'r_' + Date.now(),
+      name,
+      desc: document.getElementById('newRoutineDesc').value.trim(),
+      exercises: [...routineBuilderExercises]
+    };
+    state.routines.push(routine);
+    state.routinesCreated++;
+    showToast('✅ Routine saved!');
+  }
   saveState();
   closeModal('modalCreateRoutine');
   renderRoutinesScreen();
-  showToast('✅ Routine saved!');
 }
 
-function deleteRoutine(id) {
+function removeExFromRoutine(routineId, exId) {
+  const routine = state.routines.find(r => r.id === routineId);
+  if (!routine) return;
+  routine.exercises = routine.exercises.filter(id => id !== exId);
+  saveState();
+  renderMyRoutines();
+  showToast('Exercise removed from routine');
+}
+
+function editRoutine(routineId) {
+  const routine = state.routines.find(r => r.id === routineId);
+  if (!routine) return;
+  document.getElementById('newRoutineName').value = routine.name;
+  document.getElementById('newRoutineDesc').value = routine.desc || '';
+  routineBuilderExercises = [...routine.exercises];
+  // Store editing id
+  window._editingRoutineId = routineId;
+  renderRoutineBuilder();
+  openModal('modalCreateRoutine');
+}
+
+
   state.routines = state.routines.filter(r => r.id !== id);
   saveState();
   renderRoutinesScreen();
