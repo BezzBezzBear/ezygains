@@ -1,0 +1,2237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>EzyGains – Total Gym Buddy</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #080808;
+    --dark: #111111;
+    --card: #1a1a1a;
+    --card2: #222222;
+    --border: #2a2a2a;
+    --fire1: #ff4500;
+    --fire2: #ff6a00;
+    --fire3: #ffaa00;
+    --white: #f0f0f0;
+    --grey: #888888;
+    --lightgrey: #555555;
+    --green: #39d353;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* FLAME BACKGROUND */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; height: 300px;
+    background: radial-gradient(ellipse at 20% 0%, rgba(255,69,0,0.18) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 0%, rgba(255,106,0,0.12) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* HEADER */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(8,8,8,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,69,0,0.2);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+  }
+
+  .logo-main {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 2px;
+    background: linear-gradient(135deg, #fff 0%, var(--fire2) 60%, var(--fire1) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .logo-sub {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--fire2);
+    text-transform: uppercase;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .streak-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255,69,0,0.15);
+    border: 1px solid rgba(255,69,0,0.3);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--fire2);
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(10,10,10,0.97);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 8px 0 env(safe-area-inset-bottom, 8px);
+  }
+
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 0;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    background: none;
+    color: var(--lightgrey);
+  }
+
+  .nav-item.active { color: var(--fire2); }
+
+  .nav-icon { font-size: 22px; }
+
+  .nav-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* MAIN CONTENT */
+  main {
+    padding: 16px 16px 100px;
+    position: relative;
+    z-index: 1;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* PAGE TITLES */
+  .page-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+    line-height: 1;
+  }
+
+  .page-subtitle {
+    font-size: 13px;
+    color: var(--grey);
+    margin-bottom: 20px;
+  }
+
+  /* SCREENS */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .card-fire {
+    border-color: rgba(255,69,0,0.3);
+    background: linear-gradient(135deg, var(--card) 0%, rgba(255,69,0,0.05) 100%);
+  }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    width: 100%;
+  }
+
+  .btn-fire {
+    background: linear-gradient(135deg, var(--fire1) 0%, var(--fire2) 100%);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(255,69,0,0.3);
+  }
+
+  .btn-fire:active { transform: scale(0.97); box-shadow: 0 2px 10px rgba(255,69,0,0.2); }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--white);
+    border: 1px solid var(--border);
+  }
+
+  .btn-outline:active { background: var(--card2); }
+
+  .btn-ghost {
+    background: var(--card2);
+    color: var(--white);
+  }
+
+  .btn-sm {
+    padding: 8px 14px;
+    font-size: 13px;
+    width: auto;
+  }
+
+  .btn-icon {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 8px;
+    font-size: 18px;
+  }
+
+  /* INPUTS */
+  input, select, textarea {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--white);
+    font-family: 'Barlow', sans-serif;
+    font-size: 15px;
+    padding: 12px 14px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--fire2);
+  }
+
+  input::placeholder { color: var(--lightgrey); }
+
+  select option { background: var(--dark); }
+
+  label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--grey);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .form-group { margin-bottom: 14px; }
+
+  /* SEARCH BAR */
+  .search-wrap {
+    position: relative;
+    margin-bottom: 14px;
+  }
+
+  .search-wrap input {
+    padding-left: 40px;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--lightgrey);
+    font-size: 16px;
+    pointer-events: none;
+  }
+
+  /* FILTER PILLS */
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-bottom: 14px;
+    scrollbar-width: none;
+  }
+
+  .filter-row::-webkit-scrollbar { display: none; }
+
+  .pill {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--card2);
+    color: var(--grey);
+    transition: all 0.2s;
+  }
+
+  .pill.active {
+    background: var(--fire1);
+    border-color: var(--fire1);
+    color: #fff;
+  }
+
+  /* EXERCISE CARDS */
+  .exercise-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .exercise-card:active { background: var(--card2); border-color: var(--fire1); }
+
+  .exercise-thumb {
+    width: 52px;
+    height: 52px;
+    border-radius: 8px;
+    background: var(--card2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .exercise-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
+  .exercise-info { flex: 1; min-width: 0; }
+
+  .exercise-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .exercise-meta {
+    font-size: 12px;
+    color: var(--grey);
+    display: flex;
+    gap: 8px;
+  }
+
+  .exercise-cat {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgba(255,106,0,0.15);
+    color: var(--fire2);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+  }
+
+  .fav-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+
+  .fav-btn:active { transform: scale(1.3); }
+
+  /* HOME SCREEN */
+  .home-hero {
+    background: linear-gradient(135deg, rgba(255,69,0,0.1) 0%, var(--card) 100%);
+    border: 1px solid rgba(255,69,0,0.25);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .home-hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px;
+    line-height: 1;
+    background: linear-gradient(135deg, #fff 0%, var(--fire3) 50%, var(--fire1) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .home-hero-sub {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    letter-spacing: 3px;
+    color: var(--fire2);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 10px;
+    text-align: center;
+  }
+
+  .stat-number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    color: var(--fire2);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--grey);
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--grey);
+    margin-bottom: 10px;
+  }
+
+  /* WORKOUT SCREEN */
+  .active-workout-bar {
+    background: linear-gradient(135deg, var(--fire1), var(--fire2));
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .workout-timer {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 2px;
+  }
+
+  .workout-timer-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    opacity: 0.8;
+  }
+
+  /* SET LOGGER */
+  .set-row {
+    display: grid;
+    grid-template-columns: 32px 1fr 1fr auto;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .set-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    color: var(--fire2);
+    text-align: center;
+  }
+
+  .set-input {
+    padding: 10px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .set-done {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    color: var(--grey);
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .set-done.completed {
+    background: var(--green);
+    border-color: var(--green);
+    color: #000;
+  }
+
+  /* PROGRESS */
+  .progress-bar-wrap {
+    background: var(--card2);
+    border-radius: 20px;
+    height: 8px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 20px;
+    background: linear-gradient(90deg, var(--fire1), var(--fire3));
+    transition: width 0.5s ease;
+  }
+
+  /* ACHIEVEMENTS */
+  .achievement {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+
+  .achievement-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+  }
+
+  .achievement-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .achievement-desc {
+    font-size: 12px;
+    color: var(--grey);
+  }
+
+  .achievement.unlocked {
+    border-color: rgba(255,170,0,0.4);
+    background: linear-gradient(135deg, var(--card) 0%, rgba(255,170,0,0.05) 100%);
+  }
+
+  .achievement.locked { opacity: 0.45; }
+
+  /* XP BAR */
+  .xp-section {
+    background: var(--card);
+    border: 1px solid rgba(255,170,0,0.2);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .xp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .xp-level {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--fire3);
+  }
+
+  .xp-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--grey);
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 200;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.active { display: flex; align-items: flex-end; }
+
+  .modal {
+    background: var(--dark);
+    border: 1px solid var(--border);
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    padding: 20px 16px 36px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .modal-handle {
+    width: 40px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 16px;
+  }
+
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: var(--fire1);
+    color: #fff;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 10px 20px;
+    border-radius: 20px;
+    z-index: 300;
+    opacity: 0;
+    transition: all 0.3s;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ROUTINE CARD */
+  .routine-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .routine-card:active { border-color: var(--fire1); }
+
+  .routine-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .routine-meta {
+    font-size: 12px;
+    color: var(--grey);
+    margin-bottom: 8px;
+  }
+
+  .routine-exercises {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .routine-tag {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    background: var(--card2);
+    color: var(--grey);
+    font-family: 'Barlow Condensed', sans-serif;
+  }
+
+  /* SUMMARY */
+  .summary-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+  }
+
+  .summary-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px;
+    color: var(--fire2);
+    line-height: 1;
+  }
+
+  .summary-lbl {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--grey);
+    text-transform: uppercase;
+  }
+
+  /* DIVIDER */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0;
+  }
+
+  /* EMPTY STATE */
+  .empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--grey);
+  }
+
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+  .empty-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 6px;
+  }
+
+  /* PHOTO UPLOAD */
+  .photo-upload {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .photo-upload:active { border-color: var(--fire1); }
+
+  .photo-preview {
+    width: 100%;
+    border-radius: var(--radius);
+    max-height: 200px;
+    object-fit: cover;
+  }
+
+  /* STEPPER */
+  .stepper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .stepper-btn {
+    width: 44px;
+    height: 44px;
+    border: none;
+    background: none;
+    color: var(--white);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+
+  .stepper-btn:active { background: var(--fire1); }
+
+  .stepper-val {
+    flex: 1;
+    text-align: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: var(--white);
+    border: none;
+    background: none;
+    outline: none;
+  }
+
+  /* CHART */
+  .mini-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 60px;
+    padding: 8px 0;
+  }
+
+  .chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+
+  .chart-bar {
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+    background: linear-gradient(180deg, var(--fire3), var(--fire1));
+    min-height: 4px;
+    transition: height 0.5s ease;
+  }
+
+  .chart-label {
+    font-size: 9px;
+    color: var(--grey);
+    font-family: 'Barlow Condensed', sans-serif;
+  }
+
+  /* CONFETTI */
+  .confetti-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 500;
+    overflow: hidden;
+  }
+
+  .confetti-piece {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    animation: confettiFall 2s ease-in forwards;
+  }
+
+  @keyframes confettiFall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* UTILS */
+  .flex { display: flex; }
+  .flex-col { flex-direction: column; }
+  .items-center { align-items: center; }
+  .justify-between { justify-content: space-between; }
+  .gap-8 { gap: 8px; }
+  .gap-10 { gap: 10px; }
+  .mt-8 { margin-top: 8px; }
+  .mt-12 { margin-top: 12px; }
+  .mb-0 { margin-bottom: 0; }
+  .text-fire { color: var(--fire2); }
+  .text-grey { color: var(--grey); }
+  .text-green { color: var(--green); }
+  .font-cond { font-family: 'Barlow Condensed', sans-serif; }
+  .font-bebas { font-family: 'Bebas Neue', sans-serif; }
+  .fw-700 { font-weight: 700; }
+  .fs-12 { font-size: 12px; }
+  .fs-14 { font-size: 14px; }
+  .fs-18 { font-size: 18px; }
+  .hidden { display: none !important; }
+  .w-full { width: 100%; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- CONFETTI -->
+<div class="confetti-container" id="confettiContainer"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <span class="logo-main">EzyGains</span>
+    <span class="logo-sub">Total Gym Buddy</span>
+  </div>
+  <div class="header-right">
+    <div class="streak-badge">🔥 <span id="streakCount">0</span> day streak</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main>
+
+  <!-- HOME SCREEN -->
+  <div class="screen active" id="screen-home">
+    <div class="home-hero">
+      <div class="home-hero-sub">Welcome Back</div>
+      <div class="home-hero-title" id="heroGreeting">LET'S GET GAINS</div>
+      <p class="text-grey fs-14" style="margin:8px 0 16px">Ready to crush it today?</p>
+      <button class="btn btn-fire" onclick="showScreen('workout'); startNewWorkout()">
+        ⚡ START WORKOUT
+      </button>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-number" id="statWorkouts">0</div>
+        <div class="stat-label">Workouts</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="statSets">0</div>
+        <div class="stat-label">Total Sets</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="statXP">0</div>
+        <div class="stat-label">XP Points</div>
+      </div>
+    </div>
+
+    <div class="section-title">Quick Start Routines</div>
+    <div id="homeRoutines"></div>
+
+    <div class="section-title" style="margin-top:16px">Recent Activity</div>
+    <div id="homeRecent">
+      <div class="empty">
+        <div class="empty-icon">🏋️</div>
+        <div class="empty-title">No workouts yet</div>
+        <p>Smash your first session above!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXERCISES SCREEN -->
+  <div class="screen" id="screen-exercises">
+    <div class="page-title">EXERCISES</div>
+    <div class="page-subtitle">Your full exercise library</div>
+
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="exSearch" placeholder="Search exercises..." oninput="filterExercises()">
+    </div>
+
+    <div class="filter-row" id="catFilters">
+      <div class="pill active" data-cat="all" onclick="setCatFilter(this, 'all')">All</div>
+      <div class="pill" data-cat="Legs" onclick="setCatFilter(this, 'Legs')">🦵 Legs</div>
+      <div class="pill" data-cat="Arms" onclick="setCatFilter(this, 'Arms')">💪 Arms</div>
+      <div class="pill" data-cat="Chest" onclick="setCatFilter(this, 'Chest')">🫀 Chest</div>
+      <div class="pill" data-cat="Back" onclick="setCatFilter(this, 'Back')">🔙 Back</div>
+      <div class="pill" data-cat="Shoulders" onclick="setCatFilter(this, 'Shoulders')">🏔️ Shoulders</div>
+      <div class="pill" data-cat="Core" onclick="setCatFilter(this, 'Core')">🎯 Core</div>
+      <div class="pill" data-cat="Kettlebell" onclick="setCatFilter(this, 'Kettlebell')">🔔 Kettlebell</div>
+      <div class="pill" data-cat="Favourites" onclick="setCatFilter(this, 'Favourites')">⭐ Favourites</div>
+    </div>
+
+    <div class="filter-row" id="equipFilters">
+      <div class="pill active" data-equip="all" onclick="setEquipFilter(this, 'all')">All Equipment</div>
+      <div class="pill" data-equip="Machine" onclick="setEquipFilter(this, 'Machine')">🔩 Machine</div>
+      <div class="pill" data-equip="Cable" onclick="setEquipFilter(this, 'Cable')">📎 Cable</div>
+      <div class="pill" data-equip="Barbell" onclick="setEquipFilter(this, 'Barbell')">🏋️ Barbell</div>
+      <div class="pill" data-equip="Dumbbell" onclick="setEquipFilter(this, 'Dumbbell')">💪 Dumbbell</div>
+      <div class="pill" data-equip="Kettlebell" onclick="setEquipFilter(this, 'Kettlebell')">🔔 Kettlebell</div>
+      <div class="pill" data-equip="Bodyweight" onclick="setEquipFilter(this, 'Bodyweight')">🤸 Bodyweight</div>
+    </div>
+
+    <div id="exerciseList"></div>
+
+    <button class="btn btn-outline mt-12" onclick="openAddExerciseModal()">+ Add Custom Exercise</button>
+  </div>
+
+  <!-- WORKOUT SCREEN -->
+  <div class="screen" id="screen-workout">
+    <div id="workoutNoActive">
+      <div class="page-title">WORKOUT</div>
+      <div class="page-subtitle">Start a session or pick a routine</div>
+      <button class="btn btn-fire" style="margin-bottom:12px" onclick="startNewWorkout()">⚡ Start Empty Workout</button>
+      <div class="section-title" style="margin-top:8px">Saved Routines</div>
+      <div id="routineList"></div>
+    </div>
+
+    <div id="workoutActive" class="hidden">
+      <div class="active-workout-bar">
+        <div>
+          <div class="workout-timer-label">WORKOUT TIME</div>
+          <div class="workout-timer" id="workoutTimer">00:00</div>
+        </div>
+        <div style="text-align:right">
+          <div class="workout-timer-label">SETS DONE</div>
+          <div class="workout-timer" id="setsCompleted">0</div>
+        </div>
+      </div>
+
+      <div class="flex gap-8 mb-0" style="margin-bottom:12px">
+        <button class="btn btn-ghost" style="flex:1" onclick="openExercisePicker()">+ Add Exercise</button>
+        <button class="btn btn-fire" style="flex:1" onclick="finishWorkout()">✅ Finish</button>
+      </div>
+
+      <div id="activeExercises"></div>
+    </div>
+  </div>
+
+  <!-- ROUTINES SCREEN -->
+  <div class="screen" id="screen-routines">
+    <div class="page-title">ROUTINES</div>
+    <div class="page-subtitle">Build and manage your routines</div>
+    <button class="btn btn-fire" style="margin-bottom:16px" onclick="openCreateRoutineModal()">+ Create New Routine</button>
+    <div class="section-title">Your Routines</div>
+    <div id="myRoutines"></div>
+    <div class="section-title" style="margin-top:16px">Built-in Routines</div>
+    <div id="builtinRoutines"></div>
+  </div>
+
+  <!-- PROGRESS SCREEN -->
+  <div class="screen" id="screen-progress">
+    <div class="page-title">PROGRESS</div>
+    <div class="page-subtitle">Track your gains over time</div>
+
+    <div class="xp-section">
+      <div class="xp-header">
+        <div>
+          <div class="xp-level">LEVEL <span id="userLevel">1</span></div>
+          <div class="xp-label"><span id="userXP">0</span> / <span id="nextLevelXP">500</span> XP</div>
+        </div>
+        <div style="font-size:36px" id="levelEmoji">🌱</div>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="xpBar" style="width:0%"></div>
+      </div>
+      <div class="xp-label" style="margin-top:6px" id="levelTitle">Rookie Lifter</div>
+    </div>
+
+    <div class="section-title">Workouts This Week</div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="mini-chart" id="weekChart"></div>
+    </div>
+
+    <div class="section-title">Personal Records 🏆</div>
+    <div id="prList">
+      <div class="empty">
+        <div class="empty-icon">🏆</div>
+        <div class="empty-title">No records yet</div>
+        <p>Complete workouts to set your PRs</p>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:16px">Achievements</div>
+    <div id="achievementList"></div>
+  </div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav>
+  <button class="nav-item active" onclick="showScreen('home')" id="nav-home">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label">Home</span>
+  </button>
+  <button class="nav-item" onclick="showScreen('exercises')" id="nav-exercises">
+    <span class="nav-icon">📋</span>
+    <span class="nav-label">Exercises</span>
+  </button>
+  <button class="nav-item" onclick="showScreen('workout')" id="nav-workout">
+    <span class="nav-icon">⚡</span>
+    <span class="nav-label">Workout</span>
+  </button>
+  <button class="nav-item" onclick="showScreen('routines')" id="nav-routines">
+    <span class="nav-icon">📁</span>
+    <span class="nav-label">Routines</span>
+  </button>
+  <button class="nav-item" onclick="showScreen('progress')" id="nav-progress">
+    <span class="nav-icon">📈</span>
+    <span class="nav-label">Progress</span>
+  </button>
+</nav>
+
+<!-- MODAL: Exercise Detail -->
+<div class="modal-overlay" id="modalExercise" onclick="closeModalIfOverlay(event, 'modalExercise')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="flex items-center gap-8" style="margin-bottom:12px">
+      <div class="exercise-thumb" style="width:64px;height:64px;font-size:30px" id="modalExIcon"></div>
+      <div>
+        <div class="modal-title" id="modalExName"></div>
+        <div class="exercise-meta" id="modalExMeta"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:12px">
+      <p class="fs-14" id="modalExDesc"></p>
+    </div>
+    <div id="modalExPhoto" style="margin-bottom:12px"></div>
+    <div class="section-title">Suggested</div>
+    <div class="grid-2" style="margin-bottom:14px">
+      <div class="card mb-0">
+        <div class="font-bebas text-fire" style="font-size:24px" id="modalExSets">3</div>
+        <div class="fs-12 text-grey font-cond" style="letter-spacing:1px">SETS</div>
+      </div>
+      <div class="card mb-0">
+        <div class="font-bebas text-fire" style="font-size:24px" id="modalExReps">10-12</div>
+        <div class="fs-12 text-grey font-cond" style="letter-spacing:1px">REPS</div>
+      </div>
+    </div>
+    <div class="section-title">Equipment Photo</div>
+    <div id="exPhotoSection" style="margin-bottom:12px"></div>
+    <div class="flex gap-8">
+      <button class="btn btn-outline" style="flex:1" onclick="toggleFavFromModal()">⭐ <span id="modalFavText">Favourite</span></button>
+      <button class="btn btn-fire" style="flex:1" onclick="addToActiveWorkout()">+ Add to Workout</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add Custom Exercise -->
+<div class="modal-overlay" id="modalAddEx" onclick="closeModalIfOverlay(event, 'modalAddEx')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">ADD EXERCISE</div>
+    <p class="text-grey fs-14" style="margin-bottom:16px">Create a custom exercise</p>
+    <div class="form-group">
+      <label>Exercise Name *</label>
+      <input type="text" id="newExName" placeholder="e.g. Bulgarian Split Squat">
+    </div>
+    <div class="form-group">
+      <label>Category</label>
+      <select id="newExCat">
+        <option>Legs</option><option>Arms</option><option>Chest</option>
+        <option>Back</option><option>Shoulders</option><option>Core</option><option>Kettlebell</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Equipment</label>
+      <select id="newExEquip">
+        <option>Machine</option><option>Cable</option><option>Barbell</option>
+        <option>Dumbbell</option><option>Kettlebell</option><option>Bodyweight</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Description (optional)</label>
+      <textarea id="newExDesc" rows="2" placeholder="Describe the exercise..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Equipment Photo (optional)</label>
+      <div class="photo-upload" onclick="triggerPhotoUpload('newExPhoto')">
+        <div id="newExPhotoPreview">
+          <div style="font-size:32px">📷</div>
+          <div class="font-cond fw-700" style="margin-top:8px">Tap to add photo</div>
+          <div class="fs-12 text-grey">Great for remembering machine settings</div>
+        </div>
+      </div>
+      <input type="file" id="newExPhoto" accept="image/*" capture="environment" class="hidden" onchange="previewPhoto('newExPhoto', 'newExPhotoPreview')">
+    </div>
+    <button class="btn btn-fire" onclick="saveCustomExercise()">Save Exercise</button>
+  </div>
+</div>
+
+<!-- MODAL: Create Routine -->
+<div class="modal-overlay" id="modalCreateRoutine" onclick="closeModalIfOverlay(event, 'modalCreateRoutine')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">CREATE ROUTINE</div>
+    <p class="text-grey fs-14" style="margin-bottom:16px">Build your perfect workout</p>
+    <div class="form-group">
+      <label>Routine Name *</label>
+      <input type="text" id="newRoutineName" placeholder="e.g. Monday Push Day">
+    </div>
+    <div class="form-group">
+      <label>Description (optional)</label>
+      <input type="text" id="newRoutineDesc" placeholder="e.g. Chest, shoulders, triceps">
+    </div>
+    <div class="section-title" style="margin-top:4px">Exercises in Routine</div>
+    <div id="routineBuilderList" style="margin-bottom:12px"></div>
+    <button class="btn btn-ghost" style="margin-bottom:12px" onclick="openExercisePickerForRoutine()">+ Add Exercise</button>
+    <button class="btn btn-fire" onclick="saveRoutine()">Save Routine</button>
+  </div>
+</div>
+
+<!-- MODAL: Exercise Picker -->
+<div class="modal-overlay" id="modalExPicker" onclick="closeModalIfOverlay(event, 'modalExPicker')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">PICK EXERCISE</div>
+    <div class="search-wrap" style="margin:12px 0">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="pickerSearch" placeholder="Search..." oninput="filterPicker()">
+    </div>
+    <div class="filter-row" id="pickerCatFilters">
+      <div class="pill active" data-cat="all" onclick="setPickerCat(this,'all')">All</div>
+      <div class="pill" data-cat="Legs" onclick="setPickerCat(this,'Legs')">Legs</div>
+      <div class="pill" data-cat="Arms" onclick="setPickerCat(this,'Arms')">Arms</div>
+      <div class="pill" data-cat="Chest" onclick="setPickerCat(this,'Chest')">Chest</div>
+      <div class="pill" data-cat="Back" onclick="setPickerCat(this,'Back')">Back</div>
+      <div class="pill" data-cat="Shoulders" onclick="setPickerCat(this,'Shoulders')">Shoulders</div>
+      <div class="pill" data-cat="Core" onclick="setPickerCat(this,'Core')">Core</div>
+      <div class="pill" data-cat="Kettlebell" onclick="setPickerCat(this,'Kettlebell')">Kettlebell</div>
+    </div>
+    <div id="pickerList" style="max-height:50vh;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- MODAL: Workout Summary -->
+<div class="modal-overlay" id="modalSummary">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:56px">🔥</div>
+      <div class="font-bebas" style="font-size:40px;color:var(--fire2)">WORKOUT DONE!</div>
+      <div class="text-grey fs-14">You absolutely crushed it!</div>
+    </div>
+    <div class="flex gap-8" style="margin-bottom:16px">
+      <div class="summary-stat">
+        <div class="summary-num" id="sumTime">0</div>
+        <div class="summary-lbl">Minutes</div>
+      </div>
+      <div class="summary-stat">
+        <div class="summary-num" id="sumSets">0</div>
+        <div class="summary-lbl">Sets</div>
+      </div>
+      <div class="summary-stat">
+        <div class="summary-num" id="sumXP">0</div>
+        <div class="summary-lbl">XP Earned</div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="section-title">Exercises Completed</div>
+      <div id="sumExercises"></div>
+    </div>
+    <div id="sumPRs" style="margin-bottom:14px"></div>
+    <button class="btn btn-fire" onclick="closeSummary()">💪 Awesome!</button>
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+
+const EXERCISES_DB = [
+  // LEGS - Machines
+  { id:'e1', name:'Leg Press Machine', cat:'Legs', equip:'Machine', icon:'🦵', desc:'Works quads, hamstrings, and glutes. Push a weighted platform away using both legs in a guided motion.', sets:'3-4', reps:'10-12' },
+  { id:'e2', name:'Incline Leg Press', cat:'Legs', equip:'Machine', icon:'🦵', desc:'Steeper angle shifts work to glutes and hamstrings. Great for stronger glutes without stressing lower back.', sets:'3', reps:'10-12' },
+  { id:'e3', name:'Single-Leg Press', cat:'Legs', equip:'Machine', icon:'🦵', desc:'Targets each leg independently to fix imbalances. Works quads, glutes, and hamstrings.', sets:'3', reps:'10 each' },
+  { id:'e4', name:'Leg Extension Machine', cat:'Legs', equip:'Machine', icon:'🦵', desc:'Isolates the quads directly by extending legs against resistance.', sets:'3', reps:'12-15' },
+  { id:'e5', name:'Hack Squat Machine', cat:'Legs', equip:'Machine', icon:'🦵', desc:'Builds quad and glute strength with back fully supported. Great for those who struggle with free squat form.', sets:'4', reps:'8-12' },
+  { id:'e6', name:'Smith Machine Squat', cat:'Legs', equip:'Machine', icon:'🦵', desc:'Bar on fixed track for controlled, steady movement. Ideal for learning squat mechanics or lifting solo.', sets:'4', reps:'8-10' },
+  { id:'e7', name:'Seated Leg Curl Machine', cat:'Legs', equip:'Machine', icon:'🦵', desc:'Curl legs back against resistance to isolate hamstrings. Constant tension through full range.', sets:'3', reps:'12-15' },
+  { id:'e8', name:'Lying Leg Curl Machine', cat:'Legs', equip:'Machine', icon:'🦵', desc:'Lie face down and curl both legs upward. Most effective for hamstrings and posterior chain.', sets:'3', reps:'10-12' },
+  { id:'e9', name:'Hip Thrust Machine', cat:'Legs', equip:'Machine', icon:'🍑', desc:'Drives hips forward against resistance to directly activate glutes. Most effective for glute size and strength.', sets:'3-4', reps:'10-15' },
+  { id:'e10', name:'Hip Abductor Machine', cat:'Legs', equip:'Machine', icon:'🦵', desc:'Push legs outward to target outer thighs and hips. Protects knees during squats and lunges.', sets:'3', reps:'15-20' },
+  { id:'e11', name:'Hip Adductor Machine', cat:'Legs', equip:'Machine', icon:'🦵', desc:'Squeeze legs inward to work inner thighs. Key for hip stability and balance.', sets:'3', reps:'15-20' },
+  { id:'e12', name:'Standing Calf Raise Machine', cat:'Legs', equip:'Machine', icon:'🦵', desc:'Rise onto toes under shoulder pads to build calf size. Targets gastrocnemius.', sets:'4-8', reps:'15-20' },
+  { id:'e13', name:'Seated Calf Raise Machine', cat:'Legs', equip:'Machine', icon:'🦵', desc:'Sitting shifts work to soleus, the deeper calf muscle. Essential for complete calf development.', sets:'4', reps:'15-20' },
+  { id:'e14', name:'Cable Glute Kickbacks', cat:'Legs', equip:'Cable', icon:'🍑', desc:'Attach cable to ankle and kick leg back. Isolates glute with constant tension.', sets:'3', reps:'15 each' },
+  { id:'e15', name:'Cable Squats', cat:'Legs', equip:'Cable', icon:'🦵', desc:'Hold cable attachment and squat against resistance. Full lower body plus core challenge.', sets:'3', reps:'12-15' },
+  // ARMS
+  { id:'e16', name:'Bicep Curl Machine', cat:'Arms', equip:'Machine', icon:'💪', desc:'Targets biceps directly with padded support preventing swinging. Pure bicep contraction.', sets:'3', reps:'10-12' },
+  { id:'e17', name:'Tricep Extension Machine', cat:'Arms', equip:'Machine', icon:'💪', desc:'Builds back of arms by pushing down against resistance. Works all three tricep heads.', sets:'3', reps:'12-15' },
+  { id:'e18', name:'Hammer Curl Machine', cat:'Arms', equip:'Machine', icon:'💪', desc:'Palms face each other throughout. Builds arm thickness and grip strength.', sets:'3', reps:'10-12' },
+  { id:'e19', name:'Lat Pulldown Machine', cat:'Back', equip:'Machine', icon:'🔙', desc:'Pull bar to upper chest. Builds lats and biceps. Best machine for progressing toward pull-ups.', sets:'3-4', reps:'8-12' },
+  { id:'e20', name:'Cable Tricep Pushdown', cat:'Arms', equip:'Cable', icon:'💪', desc:'Push cable down against resistance. Excellent for all tricep heads with constant tension.', sets:'3', reps:'12-15' },
+  { id:'e21', name:'Cable Bicep Curl', cat:'Arms', equip:'Cable', icon:'💪', desc:'Curl cable upward with constant tension throughout movement. Effective for building peak.', sets:'3', reps:'10-15' },
+  { id:'e22', name:'Assisted Dip Machine', cat:'Arms', equip:'Machine', icon:'💪', desc:'Counterbalanced dips targeting triceps, lower chest, and front delts. Serious size builder.', sets:'3', reps:'8-12' },
+  { id:'e23', name:'Assisted Pull-Up Machine', cat:'Back', equip:'Machine', icon:'🔙', desc:'Counterbalanced pull-ups. Chin-up grip hits biceps extremely hard while building back strength.', sets:'3', reps:'6-10' },
+  // CHEST
+  { id:'e24', name:'Chest Press Machine', cat:'Chest', equip:'Machine', icon:'🫀', desc:'Primarily works chest with significant tricep involvement. Safer than bench press alone.', sets:'3-4', reps:'10-12' },
+  { id:'e25', name:'Incline Chest Press Machine', cat:'Chest', equip:'Machine', icon:'🫀', desc:'Targets upper pecs. Inclined position shifts focus to upper chest.', sets:'3', reps:'10-12' },
+  { id:'e26', name:'Pec Deck / Butterfly Press', cat:'Chest', equip:'Machine', icon:'🫀', desc:'Open-and-close movement for pectorals. ACE ranked it one of the most effective pec exercises.', sets:'3', reps:'12-15' },
+  { id:'e27', name:'Cable Chest Fly', cat:'Chest', equip:'Cable', icon:'🫀', desc:'Cables provide constant tension from any angle. Excellent for pec isolation and shaping.', sets:'3-4', reps:'12-15' },
+  { id:'e28', name:'Barbell Bench Press', cat:'Chest', equip:'Barbell', icon:'🏋️', desc:'Primary chest, shoulder, and triceps exercise. Fundamental pressing movement.', sets:'4', reps:'8' },
+  { id:'e29', name:'Incline Dumbbell Press', cat:'Chest', equip:'Dumbbell', icon:'🫀', desc:'Targets upper chest. Dumbbell allows greater range of motion than barbell.', sets:'4', reps:'10' },
+  // BACK
+  { id:'e30', name:'Seated Row Machine', cat:'Back', equip:'Machine', icon:'🔙', desc:'Pull handles to torso to target mid-back. Builds thickness and improves posture.', sets:'3-4', reps:'10-12' },
+  { id:'e31', name:'Back Extension Machine', cat:'Back', equip:'Machine', icon:'🔙', desc:'Strengthens erector spinae (lower back). Essential for spinal health.', sets:'3', reps:'12-15' },
+  { id:'e32', name:'T-Bar Row Machine', cat:'Back', equip:'Machine', icon:'🔙', desc:'Heavy controlled rows to build upper back thickness. Rhomboids and traps targeted.', sets:'4', reps:'8-12' },
+  { id:'e33', name:'Bent Over Barbell Row', cat:'Back', equip:'Barbell', icon:'🏋️', desc:'Key exercise for upper back thickness. Targets lats, rhomboids, and biceps.', sets:'4', reps:'12' },
+  { id:'e34', name:'One Arm Dumbbell Row', cat:'Back', equip:'Dumbbell', icon:'🔙', desc:'Single arm row to address muscle imbalances. Targets lats and rhomboids.', sets:'3', reps:'10 each' },
+  { id:'e35', name:'Face Pulls', cat:'Back', equip:'Cable', icon:'🔙', desc:'Crucial for rear delts, traps, and posture improvement. Pull rope to face level.', sets:'3', reps:'15-20' },
+  { id:'e36', name:'Deadlift', cat:'Back', equip:'Barbell', icon:'🏋️', desc:'Targets the full posterior chain. Fundamental strength movement for back, glutes, hamstrings.', sets:'4', reps:'10' },
+  // SHOULDERS
+  { id:'e37', name:'Military Press (Barbell)', cat:'Shoulders', equip:'Barbell', icon:'🏔️', desc:'Overhead barbell press. Primary shoulder strength and stability exercise.', sets:'4', reps:'10-14' },
+  { id:'e38', name:'Seated Dumbbell Press', cat:'Shoulders', equip:'Dumbbell', icon:'🏔️', desc:'Shoulder and triceps developer. Seated position provides back support.', sets:'4', reps:'8' },
+  { id:'e39', name:'Dumbbell Lateral Raise', cat:'Shoulders', equip:'Dumbbell', icon:'🏔️', desc:'Raises dumbbells to side to build medial deltoid. Key for shoulder width.', sets:'5', reps:'12,10,8,8,6' },
+  { id:'e40', name:'Dumbbell Front Raise', cat:'Shoulders', equip:'Dumbbell', icon:'🏔️', desc:'Raises dumbbells forward to build front deltoid. Complements lateral raises.', sets:'3', reps:'8-10' },
+  { id:'e41', name:'Reverse Pec Deck', cat:'Shoulders', equip:'Machine', icon:'🏔️', desc:'Targets rear deltoids and upper traps. Crucial for balanced shoulder development.', sets:'3', reps:'12-15' },
+  // CORE
+  { id:'e42', name:'Decline Sit Ups', cat:'Core', equip:'Bodyweight', icon:'🎯', desc:'Effective abdominal exercise on declined bench. Targets full rectus abdominis.', sets:'4', reps:'MAX' },
+  { id:'e43', name:'Cable Crunches', cat:'Core', equip:'Cable', icon:'🎯', desc:'Kneel and crunch down against cable resistance. Excellent weighted ab exercise.', sets:'3', reps:'15-20' },
+  // KETTLEBELL
+  { id:'e44', name:'Kettlebell Swings', cat:'Kettlebell', equip:'Kettlebell', icon:'🔔', desc:'Hip hinge movement swinging kettlebell. Full body power with posterior chain focus.', sets:'5', reps:'30' },
+  { id:'e45', name:'Turkish Get Up', cat:'Kettlebell', equip:'Kettlebell', icon:'🔔', desc:'Complex full body movement from floor to standing. Builds core stability and coordination.', sets:'6', reps:'10' },
+  { id:'e46', name:'Goblet Squat', cat:'Kettlebell', equip:'Kettlebell', icon:'🔔', desc:'Squat holding kettlebell at chest. Excellent leg exercise that challenges core too.', sets:'4', reps:'12-15' },
+  { id:'e47', name:'Kettlebell Clean & Press', cat:'Kettlebell', equip:'Kettlebell', icon:'🔔', desc:'Full body power movement from floor to overhead. Builds explosive strength.', sets:'5-6', reps:'20' },
+  { id:'e48', name:'Renegade Row', cat:'Kettlebell', equip:'Kettlebell', icon:'🔔', desc:'Push-up position row. Combines core stability with back strength.', sets:'4-6', reps:'8 each' },
+  { id:'e49', name:'Farmers Carry', cat:'Kettlebell', equip:'Kettlebell', icon:'🔔', desc:'Walk with heavy kettlebells. Builds grip strength, core stability, and total body conditioning.', sets:'3-4', reps:'40m' },
+  { id:'e50', name:'Kettlebell Shoulder Press', cat:'Kettlebell', equip:'Kettlebell', icon:'🔔', desc:'Press kettlebell overhead for shoulder development. Can be done single or double arm.', sets:'3', reps:'10 each' },
+  // BARBELL
+  { id:'e51', name:'Barbell Squat', cat:'Legs', equip:'Barbell', icon:'🏋️', desc:'Fundamental compound lower body movement. Targets quads, glutes, and core.', sets:'6', reps:'10' },
+  { id:'e52', name:'Barbell Deadlift', cat:'Back', equip:'Barbell', icon:'🏋️', desc:'King of all exercises. Full posterior chain development from floor pull.', sets:'4', reps:'10' },
+  { id:'e53', name:'Close Grip Bench Press', cat:'Arms', equip:'Barbell', icon:'🏋️', desc:'Bench press with narrow grip to emphasise triceps over chest.', sets:'5', reps:'5' },
+  { id:'e54', name:'Standing Barbell Curl', cat:'Arms', equip:'Barbell', icon:'🏋️', desc:'Classic bicep builder. Curl barbell from hanging to chest height.', sets:'4', reps:'8' },
+  { id:'e55', name:'Preacher Curl', cat:'Arms', equip:'Machine', icon:'💪', desc:'Curl with arms supported on preacher bench. Eliminates cheating for maximum bicep isolation.', sets:'4', reps:'8' },
+  { id:'e56', name:'Standing Hammer Curl', cat:'Arms', equip:'Dumbbell', icon:'💪', desc:'Neutral grip curl that builds brachialis and overall arm thickness.', sets:'4', reps:'10' },
+];
+
+const BUILTIN_ROUTINES = [
+  {
+    id: 'r_push', name: 'Push Day', desc: 'Chest, shoulders & triceps',
+    exercises: ['e24','e25','e26','e37','e38','e17','e20','e53']
+  },
+  {
+    id: 'r_pull', name: 'Pull Day', desc: 'Back & biceps',
+    exercises: ['e19','e30','e33','e34','e35','e23','e54','e55','e56']
+  },
+  {
+    id: 'r_legs', name: 'Leg Day', desc: 'Full lower body',
+    exercises: ['e1','e4','e7','e9','e10','e11','e12','e51']
+  },
+  {
+    id: 'r_shoulders', name: 'Shoulder Day', desc: 'Full shoulder development',
+    exercises: ['e37','e38','e39','e40','e41','e35']
+  },
+  {
+    id: 'r_arms', name: 'Arm Day', desc: 'Biceps & triceps',
+    exercises: ['e54','e55','e56','e16','e18','e17','e20','e53']
+  },
+  {
+    id: 'r_kb', name: 'Kettlebell Circuit', desc: 'Full body kettlebell conditioning',
+    exercises: ['e44','e46','e47','e48','e49','e45']
+  },
+];
+
+const ACHIEVEMENTS = [
+  { id:'a1', icon:'🔥', title:'First Blood', desc:'Complete your first workout', condition: s => s.totalWorkouts >= 1 },
+  { id:'a2', icon:'💪', title:'Getting Started', desc:'Complete 5 workouts', condition: s => s.totalWorkouts >= 5 },
+  { id:'a3', icon:'⚡', title:'Power Lifter', desc:'Complete 20 workouts', condition: s => s.totalWorkouts >= 20 },
+  { id:'a4', icon:'🎯', title:'Century Club', desc:'Log 100 total sets', condition: s => s.totalSets >= 100 },
+  { id:'a5', icon:'🏆', title:'Routine Builder', desc:'Create your first routine', condition: s => s.routinesCreated >= 1 },
+  { id:'a6', icon:'⭐', title:'Favourite Collector', desc:'Favourite 5 exercises', condition: s => s.favourites >= 5 },
+  { id:'a7', icon:'🌊', title:'On Fire', desc:'3 day workout streak', condition: s => s.streak >= 3 },
+  { id:'a8', icon:'👑', title:'Unstoppable', desc:'7 day workout streak', condition: s => s.streak >= 7 },
+];
+
+const LEVELS = [
+  { level:1, title:'Rookie Lifter', emoji:'🌱', xp:0 },
+  { level:2, title:'Iron Starter', emoji:'💪', xp:500 },
+  { level:3, title:'Gym Regular', emoji:'🔥', xp:1200 },
+  { level:4, title:'Power Builder', emoji:'⚡', xp:2500 },
+  { level:5, title:'Beast Mode', emoji:'🦁', xp:5000 },
+  { level:6, title:'Elite Lifter', emoji:'💎', xp:10000 },
+  { level:7, title:'Legend', emoji:'👑', xp:20000 },
+];
+
+// ===== STATE =====
+let state = {
+  exercises: [...EXERCISES_DB],
+  favourites: [],
+  routines: [],
+  workoutHistory: [],
+  currentWorkout: null,
+  workoutTimer: null,
+  workoutSeconds: 0,
+  xp: 0,
+  totalWorkouts: 0,
+  totalSets: 0,
+  streak: 0,
+  lastWorkoutDate: null,
+  prs: {},
+  routinesCreated: 0,
+  photos: {},
+};
+
+let currentExerciseId = null;
+let activeFilter = 'all';
+let activeEquipFilter = 'all';
+let pickerMode = 'workout'; // 'workout' or 'routine'
+let pickerCat = 'all';
+let routineBuilderExercises = [];
+
+// ===== STORAGE =====
+function saveState() {
+  try {
+    const toSave = { ...state };
+    delete toSave.workoutTimer;
+    localStorage.setItem('ezygains_state', JSON.stringify(toSave));
+  } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('ezygains_state');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      state = { ...state, ...parsed };
+      state.exercises = [...EXERCISES_DB, ...(parsed.customExercises || [])];
+    }
+  } catch(e) {}
+}
+
+// ===== NAVIGATION =====
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+
+  if (name === 'exercises') renderExerciseList();
+  if (name === 'workout') renderWorkoutScreen();
+  if (name === 'routines') renderRoutinesScreen();
+  if (name === 'progress') renderProgressScreen();
+  if (name === 'home') renderHomeScreen();
+}
+
+// ===== TOAST =====
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ===== MODALS =====
+function closeModalIfOverlay(e, id) {
+  if (e.target.classList.contains('modal-overlay')) closeModal(id);
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('active');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+// ===== HOME =====
+function renderHomeScreen() {
+  document.getElementById('statWorkouts').textContent = state.totalWorkouts;
+  document.getElementById('statSets').textContent = state.totalSets;
+  document.getElementById('statXP').textContent = state.xp;
+  document.getElementById('streakCount').textContent = state.streak;
+
+  const hrs = new Date().getHours();
+  const greeting = hrs < 12 ? 'MORNING GAINS' : hrs < 17 ? 'LET\'S GET GAINS' : 'EVENING GRIND';
+  document.getElementById('heroGreeting').textContent = greeting;
+
+  // Quick routines
+  const hr = document.getElementById('homeRoutines');
+  const allRoutines = [...BUILTIN_ROUTINES, ...state.routines];
+  hr.innerHTML = allRoutines.slice(0, 3).map(r => `
+    <div class="routine-card" onclick="startRoutine('${r.id}')">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="routine-name">${r.name}</div>
+          <div class="routine-meta">${r.desc || ''} · ${r.exercises.length} exercises</div>
+        </div>
+        <div class="font-bebas text-fire" style="font-size:24px">▶</div>
+      </div>
+    </div>
+  `).join('');
+
+  // Recent
+  const rec = document.getElementById('homeRecent');
+  if (state.workoutHistory.length === 0) {
+    rec.innerHTML = `<div class="empty"><div class="empty-icon">🏋️</div><div class="empty-title">No workouts yet</div><p>Smash your first session above!</p></div>`;
+  } else {
+    rec.innerHTML = state.workoutHistory.slice(-3).reverse().map(w => `
+      <div class="card">
+        <div class="flex justify-between items-center">
+          <div>
+            <div class="font-cond fw-700 fs-18">${w.name || 'Workout'}</div>
+            <div class="text-grey fs-12">${new Date(w.date).toLocaleDateString()} · ${w.duration}min · ${w.sets} sets</div>
+          </div>
+          <div class="font-bebas text-fire" style="font-size:22px">+${w.xp}xp</div>
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+// ===== EXERCISES =====
+function renderExerciseList() {
+  const search = (document.getElementById('exSearch')?.value || '').toLowerCase();
+  let list = state.exercises.filter(e => {
+    const matchSearch = !search || e.name.toLowerCase().includes(search) || (e.desc||'').toLowerCase().includes(search);
+    const matchCat = activeFilter === 'all' ? true :
+      activeFilter === 'Favourites' ? state.favourites.includes(e.id) :
+      e.cat === activeFilter;
+    const matchEquip = activeEquipFilter === 'all' || e.equip === activeEquipFilter;
+    return matchSearch && matchCat && matchEquip;
+  });
+
+  const el = document.getElementById('exerciseList');
+  if (list.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><div class="empty-title">No exercises found</div><p>Try a different search or filter</p></div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(ex => {
+    const isFav = state.favourites.includes(ex.id);
+    const photo = state.photos[ex.id];
+    return `
+    <div class="exercise-card" onclick="openExerciseModal('${ex.id}')">
+      <div class="exercise-thumb">
+        ${photo ? `<img src="${photo}" alt="">` : ex.icon}
+      </div>
+      <div class="exercise-info">
+        <div class="exercise-name">${ex.name}</div>
+        <div class="exercise-meta">
+          <span class="exercise-cat">${ex.cat}</span>
+          <span>${ex.equip}</span>
+        </div>
+      </div>
+      <button class="fav-btn" onclick="event.stopPropagation(); toggleFav('${ex.id}')">${isFav ? '⭐' : '☆'}</button>
+    </div>`;
+  }).join('');
+}
+
+function filterExercises() { renderExerciseList(); }
+
+function setCatFilter(el, cat) {
+  activeFilter = cat;
+  document.querySelectorAll('#catFilters .pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderExerciseList();
+}
+
+function setEquipFilter(el, equip) {
+  activeEquipFilter = equip;
+  document.querySelectorAll('#equipFilters .pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderExerciseList();
+}
+
+function toggleFav(id) {
+  if (state.favourites.includes(id)) {
+    state.favourites = state.favourites.filter(f => f !== id);
+  } else {
+    state.favourites.push(id);
+    showToast('⭐ Added to favourites!');
+  }
+  saveState();
+  renderExerciseList();
+}
+
+function openExerciseModal(id) {
+  currentExerciseId = id;
+  const ex = state.exercises.find(e => e.id === id);
+  if (!ex) return;
+
+  document.getElementById('modalExName').textContent = ex.name;
+  document.getElementById('modalExIcon').textContent = ex.icon || '💪';
+  document.getElementById('modalExMeta').innerHTML = `<span class="exercise-cat">${ex.cat}</span><span>${ex.equip}</span>`;
+  document.getElementById('modalExDesc').textContent = ex.desc || 'No description available.';
+  document.getElementById('modalExSets').textContent = ex.sets || '3';
+  document.getElementById('modalExReps').textContent = ex.reps || '10-12';
+  document.getElementById('modalFavText').textContent = state.favourites.includes(id) ? 'Unfavourite' : 'Favourite';
+
+  // Photo
+  const photo = state.photos[id];
+  const photoSection = document.getElementById('exPhotoSection');
+  if (photo) {
+    photoSection.innerHTML = `<img src="${photo}" class="photo-preview" style="margin-bottom:8px"><br>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('exModalPhotoInput').click()">Change Photo</button>`;
+  } else {
+    photoSection.innerHTML = `
+      <div class="photo-upload" onclick="document.getElementById('exModalPhotoInput').click()">
+        <div style="font-size:28px">📷</div>
+        <div class="font-cond fw-700 fs-14" style="margin-top:6px">Add equipment photo</div>
+        <div class="fs-12 text-grey">Remember settings & setup</div>
+      </div>`;
+  }
+
+  // Remove old input if exists
+  const oldInput = document.getElementById('exModalPhotoInput');
+  if (oldInput) oldInput.remove();
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.id = 'exModalPhotoInput';
+  input.accept = 'image/*';
+  input.className = 'hidden';
+  input.onchange = () => saveExercisePhoto(id, input);
+  document.body.appendChild(input);
+
+  openModal('modalExercise');
+}
+
+function saveExercisePhoto(id, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    state.photos[id] = e.target.result;
+    saveState();
+    openExerciseModal(id);
+    showToast('📷 Photo saved!');
+  };
+  reader.readAsDataURL(file);
+}
+
+function toggleFavFromModal() {
+  toggleFav(currentExerciseId);
+  document.getElementById('modalFavText').textContent = state.favourites.includes(currentExerciseId) ? 'Unfavourite' : 'Favourite';
+}
+
+function addToActiveWorkout() {
+  if (!state.currentWorkout) {
+    startNewWorkout();
+    showScreen('workout');
+  }
+  const ex = state.exercises.find(e => e.id === currentExerciseId);
+  if (ex) {
+    addExerciseToWorkout(currentExerciseId);
+    closeModal('modalExercise');
+    showScreen('workout');
+    showToast(`+ ${ex.name} added!`);
+  }
+}
+
+// ===== CUSTOM EXERCISE =====
+function openAddExerciseModal() {
+  document.getElementById('newExName').value = '';
+  document.getElementById('newExDesc').value = '';
+  document.getElementById('newExPhotoPreview').innerHTML = `<div style="font-size:32px">📷</div><div class="font-cond fw-700" style="margin-top:8px">Tap to add photo</div><div class="fs-12 text-grey">Great for remembering machine settings</div>`;
+  openModal('modalAddEx');
+}
+
+function triggerPhotoUpload(inputId) {
+  document.getElementById(inputId).click();
+}
+
+function previewPhoto(inputId, previewId) {
+  const input = document.getElementById(inputId);
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById(previewId).innerHTML = `<img src="${e.target.result}" style="width:100%;border-radius:8px;max-height:150px;object-fit:cover">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveCustomExercise() {
+  const name = document.getElementById('newExName').value.trim();
+  if (!name) { showToast('Please enter an exercise name'); return; }
+
+  const id = 'custom_' + Date.now();
+  const ex = {
+    id,
+    name,
+    cat: document.getElementById('newExCat').value,
+    equip: document.getElementById('newExEquip').value,
+    icon: '⚙️',
+    desc: document.getElementById('newExDesc').value,
+    sets: '3', reps: '10-12',
+    custom: true
+  };
+
+  // Photo
+  const photoInput = document.getElementById('newExPhoto');
+  const saveEx = (photoData) => {
+    if (photoData) state.photos[id] = photoData;
+    state.exercises.push(ex);
+    if (!state.customExercises) state.customExercises = [];
+    state.customExercises.push(ex);
+    saveState();
+    closeModal('modalAddEx');
+    renderExerciseList();
+    showToast('✅ Exercise created!');
+  };
+
+  if (photoInput.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => saveEx(e.target.result);
+    reader.readAsDataURL(photoInput.files[0]);
+  } else {
+    saveEx(null);
+  }
+}
+
+// ===== WORKOUT =====
+function startNewWorkout(routineName, exerciseIds) {
+  state.currentWorkout = {
+    id: 'w_' + Date.now(),
+    name: routineName || 'My Workout',
+    startTime: Date.now(),
+    exercises: [],
+    completedSets: 0
+  };
+
+  if (exerciseIds) {
+    exerciseIds.forEach(id => addExerciseToWorkout(id));
+  }
+
+  state.workoutSeconds = 0;
+  if (state.workoutTimer) clearInterval(state.workoutTimer);
+  state.workoutTimer = setInterval(() => {
+    state.workoutSeconds++;
+    const m = String(Math.floor(state.workoutSeconds / 60)).padStart(2,'0');
+    const s = String(state.workoutSeconds % 60).padStart(2,'0');
+    const el = document.getElementById('workoutTimer');
+    if (el) el.textContent = `${m}:${s}`;
+  }, 1000);
+
+  renderWorkoutScreen();
+}
+
+function addExerciseToWorkout(exId) {
+  if (!state.currentWorkout) return;
+  const ex = state.exercises.find(e => e.id === exId);
+  if (!ex) return;
+  state.currentWorkout.exercises.push({
+    exId,
+    name: ex.name,
+    sets: [{ weight: '', reps: '', done: false }]
+  });
+  renderActiveExercises();
+}
+
+function renderWorkoutScreen() {
+  const hasActive = !!state.currentWorkout;
+  document.getElementById('workoutNoActive').classList.toggle('hidden', hasActive);
+  document.getElementById('workoutActive').classList.toggle('hidden', !hasActive);
+
+  if (!hasActive) {
+    renderRoutineList();
+  } else {
+    renderActiveExercises();
+  }
+}
+
+function renderRoutineList() {
+  const allRoutines = [...BUILTIN_ROUTINES, ...state.routines];
+  document.getElementById('routineList').innerHTML = allRoutines.map(r => `
+    <div class="routine-card" onclick="startRoutine('${r.id}')">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="routine-name">${r.name}</div>
+          <div class="routine-meta">${r.desc || ''} · ${r.exercises.length} exercises</div>
+        </div>
+        <div class="font-bebas text-fire" style="font-size:24px">▶</div>
+      </div>
+      <div class="routine-exercises">
+        ${r.exercises.slice(0,4).map(id => {
+          const ex = state.exercises.find(e => e.id === id);
+          return ex ? `<span class="routine-tag">${ex.name}</span>` : '';
+        }).join('')}
+        ${r.exercises.length > 4 ? `<span class="routine-tag">+${r.exercises.length-4} more</span>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function startRoutine(routineId) {
+  const allRoutines = [...BUILTIN_ROUTINES, ...state.routines];
+  const routine = allRoutines.find(r => r.id === routineId);
+  if (!routine) return;
+  startNewWorkout(routine.name, routine.exercises);
+  showScreen('workout');
+}
+
+function renderActiveExercises() {
+  if (!state.currentWorkout) return;
+  const el = document.getElementById('activeExercises');
+  const totalDone = state.currentWorkout.exercises.reduce((acc, ex) => acc + ex.sets.filter(s => s.done).length, 0);
+  document.getElementById('setsCompleted').textContent = totalDone;
+
+  el.innerHTML = state.currentWorkout.exercises.map((ex, ei) => `
+    <div class="card card-fire" style="margin-bottom:12px">
+      <div class="flex items-center justify-between" style="margin-bottom:12px">
+        <div class="font-cond fw-700 fs-18">${ex.name}</div>
+        <button class="btn btn-ghost btn-sm" onclick="removeExerciseFromWorkout(${ei})">✕</button>
+      </div>
+      <div style="display:grid;grid-template-columns:32px 1fr 1fr auto;gap:8px;align-items:center;margin-bottom:6px">
+        <div class="fs-12 text-grey font-cond" style="letter-spacing:1px">SET</div>
+        <div class="fs-12 text-grey font-cond" style="letter-spacing:1px;text-align:center">KG</div>
+        <div class="fs-12 text-grey font-cond" style="letter-spacing:1px;text-align:center">REPS</div>
+        <div></div>
+      </div>
+      ${ex.sets.map((set, si) => `
+        <div class="set-row">
+          <div class="set-num">${si + 1}</div>
+          <input class="set-input" type="number" inputmode="decimal" placeholder="kg"
+            value="${set.weight}" onchange="updateSet(${ei},${si},'weight',this.value)"
+            ${set.done ? 'disabled' : ''} style="${set.done ? 'opacity:0.5' : ''}">
+          <input class="set-input" type="number" inputmode="numeric" placeholder="reps"
+            value="${set.reps}" onchange="updateSet(${ei},${si},'reps',this.value)"
+            ${set.done ? 'disabled' : ''} style="${set.done ? 'opacity:0.5' : ''}">
+          <button class="set-done ${set.done ? 'completed' : ''}" onclick="toggleSetDone(${ei},${si})">
+            ${set.done ? '✓' : '○'}
+          </button>
+        </div>
+      `).join('')}
+      <button class="btn btn-ghost btn-sm mt-8" onclick="addSet(${ei})">+ Add Set</button>
+    </div>
+  `).join('');
+}
+
+function updateSet(ei, si, field, val) {
+  if (!state.currentWorkout) return;
+  state.currentWorkout.exercises[ei].sets[si][field] = val;
+}
+
+function toggleSetDone(ei, si) {
+  if (!state.currentWorkout) return;
+  const set = state.currentWorkout.exercises[ei].sets[si];
+  set.done = !set.done;
+  if (set.done) {
+    state.currentWorkout.completedSets = (state.currentWorkout.completedSets || 0) + 1;
+    checkPR(state.currentWorkout.exercises[ei].exId, parseFloat(set.weight), parseInt(set.reps));
+  }
+  renderActiveExercises();
+}
+
+function addSet(ei) {
+  if (!state.currentWorkout) return;
+  const lastSet = state.currentWorkout.exercises[ei].sets.slice(-1)[0];
+  state.currentWorkout.exercises[ei].sets.push({
+    weight: lastSet?.weight || '',
+    reps: lastSet?.reps || '',
+    done: false
+  });
+  renderActiveExercises();
+}
+
+function removeExerciseFromWorkout(ei) {
+  if (!state.currentWorkout) return;
+  state.currentWorkout.exercises.splice(ei, 1);
+  renderActiveExercises();
+}
+
+function checkPR(exId, weight, reps) {
+  if (!weight || !reps) return;
+  const key = exId;
+  if (!state.prs[key] || weight > state.prs[key].weight) {
+    const isNew = !state.prs[key];
+    state.prs[key] = { weight, reps, date: new Date().toISOString() };
+    if (!isNew) showToast(`🏆 New PR! ${weight}kg!`);
+    saveState();
+  }
+}
+
+function finishWorkout() {
+  if (!state.currentWorkout) return;
+  const w = state.currentWorkout;
+  const duration = Math.round(state.workoutSeconds / 60);
+  const allSets = w.exercises.flatMap(e => e.sets);
+  const completedSets = allSets.filter(s => s.done).length;
+  const totalSets = allSets.length;
+
+  if (completedSets === 0) {
+    showToast('Complete at least one set first!');
+    return;
+  }
+
+  // XP calculation
+  const xpEarned = completedSets * 10 + duration * 2;
+
+  // Update state
+  state.xp += xpEarned;
+  state.totalWorkouts++;
+  state.totalSets += completedSets;
+
+  // Streak
+  const today = new Date().toDateString();
+  const last = state.lastWorkoutDate ? new Date(state.lastWorkoutDate).toDateString() : null;
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  if (last === yesterday) state.streak++;
+  else if (last !== today) state.streak = 1;
+  state.lastWorkoutDate = new Date().toISOString();
+
+  // Save workout
+  const record = {
+    id: w.id,
+    name: w.name,
+    date: new Date().toISOString(),
+    duration,
+    sets: completedSets,
+    exercises: w.exercises.map(e => e.name),
+    xp: xpEarned
+  };
+  state.workoutHistory.push(record);
+
+  // Stop timer
+  clearInterval(state.workoutTimer);
+  state.currentWorkout = null;
+
+  // Check achievements
+  checkAchievements();
+  saveState();
+
+  // Show summary
+  document.getElementById('sumTime').textContent = duration;
+  document.getElementById('sumSets').textContent = completedSets;
+  document.getElementById('sumXP').textContent = '+' + xpEarned;
+  document.getElementById('sumExercises').innerHTML = record.exercises.map(n =>
+    `<div class="font-cond fw-700 fs-14" style="padding:4px 0;border-bottom:1px solid var(--border)">${n}</div>`
+  ).join('');
+
+  // PRs in summary
+  const prSection = document.getElementById('sumPRs');
+  const newPRs = w.exercises.filter(ex => {
+    const pr = state.prs[ex.exId];
+    return pr && new Date(pr.date) > new Date(Date.now() - 60000);
+  });
+  if (newPRs.length > 0) {
+    prSection.innerHTML = `<div class="card card-fire"><div class="section-title">🏆 New Personal Records!</div>
+      ${newPRs.map(ex => `<div class="font-cond fw-700 fs-14" style="color:var(--fire3)">${ex.name}: ${state.prs[ex.exId].weight}kg × ${state.prs[ex.exId].reps} reps</div>`).join('')}
+    </div>`;
+  } else {
+    prSection.innerHTML = '';
+  }
+
+  openModal('modalSummary');
+  launchConfetti();
+}
+
+function closeSummary() {
+  closeModal('modalSummary');
+  showScreen('home');
+  renderHomeScreen();
+}
+
+function checkAchievements() {
+  const stats = {
+    totalWorkouts: state.totalWorkouts,
+    totalSets: state.totalSets,
+    streak: state.streak,
+    routinesCreated: state.routinesCreated,
+    favourites: state.favourites.length
+  };
+}
+
+// ===== EXERCISE PICKER =====
+function openExercisePicker() {
+  pickerMode = 'workout';
+  pickerCat = 'all';
+  document.getElementById('pickerSearch').value = '';
+  document.querySelectorAll('#pickerCatFilters .pill').forEach(p => p.classList.remove('active'));
+  document.querySelector('#pickerCatFilters .pill[data-cat="all"]').classList.add('active');
+  filterPicker();
+  openModal('modalExPicker');
+}
+
+function openExercisePickerForRoutine() {
+  pickerMode = 'routine';
+  pickerCat = 'all';
+  document.getElementById('pickerSearch').value = '';
+  document.querySelectorAll('#pickerCatFilters .pill').forEach(p => p.classList.remove('active'));
+  document.querySelector('#pickerCatFilters .pill[data-cat="all"]').classList.add('active');
+  filterPicker();
+  openModal('modalExPicker');
+}
+
+function setPickerCat(el, cat) {
+  pickerCat = cat;
+  document.querySelectorAll('#pickerCatFilters .pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  filterPicker();
+}
+
+function filterPicker() {
+  const search = (document.getElementById('pickerSearch')?.value || '').toLowerCase();
+  let list = state.exercises.filter(e => {
+    const matchSearch = !search || e.name.toLowerCase().includes(search);
+    const matchCat = pickerCat === 'all' || e.cat === pickerCat;
+    return matchSearch && matchCat;
+  });
+
+  document.getElementById('pickerList').innerHTML = list.map(ex => `
+    <div class="exercise-card" onclick="pickExercise('${ex.id}')">
+      <div class="exercise-thumb" style="width:44px;height:44px;font-size:20px">${ex.icon}</div>
+      <div class="exercise-info">
+        <div class="exercise-name">${ex.name}</div>
+        <div class="exercise-meta"><span class="exercise-cat">${ex.cat}</span><span>${ex.equip}</span></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function pickExercise(id) {
+  closeModal('modalExPicker');
+  if (pickerMode === 'workout') {
+    if (!state.currentWorkout) startNewWorkout();
+    addExerciseToWorkout(id);
+    renderActiveExercises();
+    const ex = state.exercises.find(e => e.id === id);
+    if (ex) showToast(`+ ${ex.name} added!`);
+  } else {
+    if (!routineBuilderExercises.includes(id)) {
+      routineBuilderExercises.push(id);
+      renderRoutineBuilder();
+    }
+  }
+}
+
+// ===== ROUTINES =====
+function renderRoutinesScreen() {
+  renderMyRoutines();
+  renderBuiltinRoutines();
+}
+
+function renderMyRoutines() {
+  const el = document.getElementById('myRoutines');
+  if (state.routines.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">📁</div><div class="empty-title">No custom routines yet</div><p>Create one to get started!</p></div>`;
+    return;
+  }
+  el.innerHTML = state.routines.map(r => `
+    <div class="routine-card">
+      <div class="flex items-center justify-between" style="margin-bottom:8px">
+        <div class="routine-name">${r.name}</div>
+        <div class="flex gap-8">
+          <button class="btn btn-fire btn-sm" onclick="startRoutine('${r.id}')">▶ Start</button>
+          <button class="btn btn-ghost btn-sm" onclick="deleteRoutine('${r.id}')">✕</button>
+        </div>
+      </div>
+      <div class="routine-meta">${r.desc || ''} · ${r.exercises.length} exercises</div>
+      <div class="routine-exercises">
+        ${r.exercises.map(id => {
+          const ex = state.exercises.find(e => e.id === id);
+          return ex ? `<span class="routine-tag">${ex.name}</span>` : '';
+        }).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderBuiltinRoutines() {
+  document.getElementById('builtinRoutines').innerHTML = BUILTIN_ROUTINES.map(r => `
+    <div class="routine-card" onclick="startRoutine('${r.id}')">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="routine-name">${r.name}</div>
+          <div class="routine-meta">${r.desc} · ${r.exercises.length} exercises</div>
+        </div>
+        <div class="font-bebas text-fire" style="font-size:24px">▶</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openCreateRoutineModal() {
+  document.getElementById('newRoutineName').value = '';
+  document.getElementById('newRoutineDesc').value = '';
+  routineBuilderExercises = [];
+  renderRoutineBuilder();
+  openModal('modalCreateRoutine');
+}
+
+function renderRoutineBuilder() {
+  const el = document.getElementById('routineBuilderList');
+  if (routineBuilderExercises.length === 0) {
+    el.innerHTML = `<div class="text-grey fs-14" style="padding:8px 0">No exercises added yet</div>`;
+    return;
+  }
+  el.innerHTML = routineBuilderExercises.map((id, i) => {
+    const ex = state.exercises.find(e => e.id === id);
+    return ex ? `
+      <div class="flex items-center gap-8" style="padding:8px 0;border-bottom:1px solid var(--border)">
+        <div style="font-size:20px">${ex.icon}</div>
+        <div class="font-cond fw-700 fs-14" style="flex:1">${ex.name}</div>
+        <button class="btn btn-ghost btn-sm" onclick="removeFromRoutineBuilder(${i})">✕</button>
+      </div>` : '';
+  }).join('');
+}
+
+function removeFromRoutineBuilder(i) {
+  routineBuilderExercises.splice(i, 1);
+  renderRoutineBuilder();
+}
+
+function saveRoutine() {
+  const name = document.getElementById('newRoutineName').value.trim();
+  if (!name) { showToast('Please enter a routine name'); return; }
+  if (routineBuilderExercises.length === 0) { showToast('Add at least one exercise'); return; }
+
+  const routine = {
+    id: 'r_' + Date.now(),
+    name,
+    desc: document.getElementById('newRoutineDesc').value.trim(),
+    exercises: [...routineBuilderExercises]
+  };
+  state.routines.push(routine);
+  state.routinesCreated++;
+  saveState();
+  closeModal('modalCreateRoutine');
+  renderRoutinesScreen();
+  showToast('✅ Routine saved!');
+}
+
+function deleteRoutine(id) {
+  state.routines = state.routines.filter(r => r.id !== id);
+  saveState();
+  renderRoutinesScreen();
+  showToast('Routine deleted');
+}
+
+// ===== PROGRESS =====
+function renderProgressScreen() {
+  // XP / Level
+  let currentLevel = LEVELS[0];
+  let nextLevel = LEVELS[1];
+  for (let i = LEVELS.length - 1; i >= 0; i--) {
+    if (state.xp >= LEVELS[i].xp) { currentLevel = LEVELS[i]; nextLevel = LEVELS[i+1] || LEVELS[i]; break; }
+  }
+  const progress = nextLevel.xp > currentLevel.xp ?
+    Math.min(100, ((state.xp - currentLevel.xp) / (nextLevel.xp - currentLevel.xp)) * 100) : 100;
+
+  document.getElementById('userLevel').textContent = currentLevel.level;
+  document.getElementById('userXP').textContent = state.xp;
+  document.getElementById('nextLevelXP').textContent = nextLevel.xp;
+  document.getElementById('xpBar').style.width = progress + '%';
+  document.getElementById('levelEmoji').textContent = currentLevel.emoji;
+  document.getElementById('levelTitle').textContent = currentLevel.title;
+
+  // Week chart
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const now = new Date();
+  const weekCounts = days.map((_, i) => {
+    const d = new Date(now);
+    const dayOfWeek = d.getDay();
+    const diff = i - (dayOfWeek === 0 ? 6 : dayOfWeek - 1);
+    d.setDate(d.getDate() + diff);
+    const dateStr = d.toDateString();
+    return state.workoutHistory.filter(w => new Date(w.date).toDateString() === dateStr).length;
+  });
+  const maxCount = Math.max(...weekCounts, 1);
+  document.getElementById('weekChart').innerHTML = weekCounts.map((count, i) => `
+    <div class="chart-bar-wrap">
+      <div class="chart-bar" style="height:${Math.max((count/maxCount)*44, count > 0 ? 8 : 2)}px"></div>
+      <div class="chart-label">${days[i]}</div>
+    </div>
+  `).join('');
+
+  // PRs
+  const prList = document.getElementById('prList');
+  const prKeys = Object.keys(state.prs);
+  if (prKeys.length === 0) {
+    prList.innerHTML = `<div class="empty"><div class="empty-icon">🏆</div><div class="empty-title">No records yet</div><p>Complete workouts to set your PRs</p></div>`;
+  } else {
+    prList.innerHTML = prKeys.map(key => {
+      const ex = state.exercises.find(e => e.id === key);
+      const pr = state.prs[key];
+      return ex ? `
+        <div class="achievement unlocked">
+          <div class="achievement-icon">🏆</div>
+          <div>
+            <div class="achievement-title">${ex.name}</div>
+            <div class="achievement-desc">${pr.weight}kg × ${pr.reps} reps · ${new Date(pr.date).toLocaleDateString()}</div>
+          </div>
+        </div>` : '';
+    }).join('');
+  }
+
+  // Achievements
+  const stats = {
+    totalWorkouts: state.totalWorkouts,
+    totalSets: state.totalSets,
+    streak: state.streak,
+    routinesCreated: state.routinesCreated,
+    favourites: state.favourites.length
+  };
+  document.getElementById('achievementList').innerHTML = ACHIEVEMENTS.map(a => {
+    const unlocked = a.condition(stats);
+    return `
+      <div class="achievement ${unlocked ? 'unlocked' : 'locked'}">
+        <div class="achievement-icon">${a.icon}</div>
+        <div>
+          <div class="achievement-title">${a.title} ${unlocked ? '✓' : '🔒'}</div>
+          <div class="achievement-desc">${a.desc}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ===== CONFETTI =====
+function launchConfetti() {
+  const container = document.getElementById('confettiContainer');
+  const colors = ['#ff4500','#ff6a00','#ffaa00','#fff','#ff6b6b'];
+  for (let i = 0; i < 60; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.cssText = `
+      left: ${Math.random() * 100}%;
+      top: -10px;
+      background: ${colors[Math.floor(Math.random() * colors.length)]};
+      width: ${Math.random() * 10 + 6}px;
+      height: ${Math.random() * 10 + 6}px;
+      animation-delay: ${Math.random() * 0.8}s;
+      animation-duration: ${Math.random() * 1 + 1.5}s;
+    `;
+    container.appendChild(piece);
+  }
+  setTimeout(() => container.innerHTML = '', 3000);
+}
+
+// ===== INIT =====
+loadState();
+renderHomeScreen();
+renderExerciseList();
+
+// Greet
+const hrs = new Date().getHours();
+document.getElementById('heroGreeting').textContent =
+  hrs < 12 ? 'MORNING GAINS' : hrs < 17 ? 'LET\'S GET GAINS' : 'EVENING GRIND';
+</script>
+</body>
+</html>
