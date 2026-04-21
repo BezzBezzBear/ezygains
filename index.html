@@ -995,11 +995,6 @@
       </div>
     </div>
 
-    <div style="margin-top:20px;display:flex;justify-content:center">
-      <video autoplay loop muted playsinline style="width:20%;display:block;border-radius:var(--radius)">
-        <source src="https://raw.githubusercontent.com/BezzBezzBear/ezygains/main/assets/video/squat%20vid.MP4" type="video/mp4">
-      </video>
-    </div>
   </div>
 
   <!-- EXERCISES SCREEN -->
@@ -1014,13 +1009,13 @@
 
     <div class="filter-row" id="catFilters">
       <div class="pill active" data-cat="all" onclick="setCatFilter(this, 'all')">All</div>
-      <div class="pill icon-pill" data-cat="Legs" onclick="setCatFilter(this, 'Legs')"><img src="https://raw.githubusercontent.com/BezzBezzBear/ezygains/main/assets/icons/legs.PNG" class="pill-icon">Legs</div>
-      <div class="pill icon-pill" data-cat="Arms" onclick="setCatFilter(this, 'Arms')"><img src="https://raw.githubusercontent.com/BezzBezzBear/ezygains/main/assets/icons/arms.PNG" class="pill-icon">Arms</div>
-      <div class="pill icon-pill" data-cat="Chest" onclick="setCatFilter(this, 'Chest')"><img src="https://raw.githubusercontent.com/BezzBezzBear/ezygains/main/assets/icons/chest.PNG" class="pill-icon">Chest</div>
-      <div class="pill icon-pill" data-cat="Back" onclick="setCatFilter(this, 'Back')"><img src="https://raw.githubusercontent.com/BezzBezzBear/ezygains/main/assets/icons/back.PNG" class="pill-icon">Back</div>
-      <div class="pill icon-pill" data-cat="Shoulders" onclick="setCatFilter(this, 'Shoulders')"><img src="https://raw.githubusercontent.com/BezzBezzBear/ezygains/main/assets/icons/shoulders.PNG" class="pill-icon">Shoulders</div>
-      <div class="pill icon-pill" data-cat="Core" onclick="setCatFilter(this, 'Core')"><img src="https://raw.githubusercontent.com/BezzBezzBear/ezygains/main/assets/icons/core.PNG" class="pill-icon">Core</div>
-      <div class="pill icon-pill" data-cat="Kettlebell" onclick="setCatFilter(this, 'Kettlebell')"><img src="https://raw.githubusercontent.com/BezzBezzBear/ezygains/main/assets/icons/kettlebells.PNG" class="pill-icon">Kettlebell</div>
+      <div class="pill icon-pill" data-cat="Legs" onclick="setCatFilter(this, 'Legs')"><img src="assets/icons/legs.PNG" class="pill-icon">Legs</div>
+      <div class="pill icon-pill" data-cat="Arms" onclick="setCatFilter(this, 'Arms')"><img src="assets/icons/arms.PNG" class="pill-icon">Arms</div>
+      <div class="pill icon-pill" data-cat="Chest" onclick="setCatFilter(this, 'Chest')"><img src="assets/icons/chest.PNG" class="pill-icon">Chest</div>
+      <div class="pill icon-pill" data-cat="Back" onclick="setCatFilter(this, 'Back')"><img src="assets/icons/back.PNG" class="pill-icon">Back</div>
+      <div class="pill icon-pill" data-cat="Shoulders" onclick="setCatFilter(this, 'Shoulders')"><img src="assets/icons/shoulders.PNG" class="pill-icon">Shoulders</div>
+      <div class="pill icon-pill" data-cat="Core" onclick="setCatFilter(this, 'Core')"><img src="assets/icons/core.PNG" class="pill-icon">Core</div>
+      <div class="pill icon-pill" data-cat="Kettlebell" onclick="setCatFilter(this, 'Kettlebell')"><img src="assets/icons/kettlebells.PNG" class="pill-icon">Kettlebell</div>
       <div class="pill" data-cat="Favourites" onclick="setCatFilter(this, 'Favourites')">⭐ Favourites</div>
     </div>
 
@@ -1300,7 +1295,7 @@
 </div>
 
 <script>
-const BASE = 'https://raw.githubusercontent.com/BezzBezzBear/ezygains/main/assets/icons/';
+const BASE = 'assets/icons/';
 const CAT_ICONS = {
   'Legs':      BASE + 'legs.PNG',
   'Arms':      BASE + 'arms.PNG',
@@ -1722,7 +1717,7 @@ function saveExerciseName(id) {
   }
 }
 
-
+function toggleFavFromModal() {
   toggleFav(currentExerciseId);
   document.getElementById('modalFavText').textContent = state.favourites.includes(currentExerciseId) ? 'Unfavourite' : 'Favourite';
 }
@@ -2069,7 +2064,6 @@ function saveWorkoutAsRoutine() {
   const lastWorkout = state.workoutHistory[state.workoutHistory.length - 1];
   if (!lastWorkout) return;
 
-  // We need exercise IDs - store them on the record
   const routine = {
     id: 'r_' + Date.now(),
     name,
@@ -2078,7 +2072,6 @@ function saveWorkoutAsRoutine() {
     isDefault: true
   };
 
-  // Clear previous defaults of same name
   state.routines.forEach(r => { if (r.name === name) r.isDefault = false; });
   state.routines.push(routine);
   state.routinesCreated++;
@@ -2087,7 +2080,7 @@ function saveWorkoutAsRoutine() {
   document.getElementById('sumSaveRoutine').innerHTML = `<div class="card" style="margin-bottom:14px;text-align:center"><div style="font-size:28px">✅</div><div class="font-cond fw-700">Routine Saved!</div></div>`;
 }
 
-
+function closeSummary() {
   closeModal('modalSummary');
   showScreen('home');
   renderHomeScreen();
@@ -2235,13 +2228,41 @@ function renderRoutineBuilder() {
   }
   el.innerHTML = routineBuilderExercises.map((id, i) => {
     const ex = state.exercises.find(e => e.id === id);
+    const catIcon = ex ? CAT_ICONS[ex.cat] : null;
+    const thumb = catIcon
+      ? `<img src="${catIcon}" style="width:32px;height:32px;border-radius:6px;object-fit:cover;background:#000">`
+      : `<span style="font-size:20px">${ex?.icon || '💪'}</span>`;
     return ex ? `
-      <div class="flex items-center gap-8" style="padding:8px 0;border-bottom:1px solid var(--border)">
-        <div style="font-size:20px">${ex.icon}</div>
-        <div class="font-cond fw-700 fs-14" style="flex:1">${ex.name}</div>
+      <div class="flex items-center gap-8" style="padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="flex-shrink:0">${thumb}</div>
+        <div style="flex:1;min-width:0">
+          <div
+            contenteditable="true"
+            class="font-cond fw-700 fs-14"
+            style="outline:none;border-bottom:1px dashed var(--fire2);padding-bottom:2px"
+            onblur="renameRoutineExercise('${id}', this.textContent)"
+            title="Tap to rename"
+          >${ex.name}</div>
+          <div class="fs-12 text-grey">${ex.cat} · ${ex.equip} · tap name to rename</div>
+        </div>
         <button class="btn btn-ghost btn-sm" onclick="removeFromRoutineBuilder(${i})">✕</button>
       </div>` : '';
   }).join('');
+}
+
+function renameRoutineExercise(id, newName) {
+  newName = newName.trim();
+  if (!newName) return;
+  const ex = state.exercises.find(e => e.id === id);
+  if (ex && ex.name !== newName) {
+    ex.name = newName;
+    if (state.customExercises) {
+      const custom = state.customExercises.find(e => e.id === id);
+      if (custom) custom.name = newName;
+    }
+    saveState();
+    showToast('✅ Exercise renamed!');
+  }
 }
 
 function removeFromRoutineBuilder(i) {
@@ -2301,7 +2322,7 @@ function editRoutine(routineId) {
   openModal('modalCreateRoutine');
 }
 
-
+function deleteRoutine(id) {
   state.routines = state.routines.filter(r => r.id !== id);
   saveState();
   renderRoutinesScreen();
