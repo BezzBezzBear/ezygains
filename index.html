@@ -964,7 +964,7 @@
       <div class="home-hero-sub">Welcome Back</div>
       <div class="home-hero-title" id="heroGreeting">LET'S GET GAINS</div>
       <p class="text-grey fs-14" style="margin:8px 0 16px">Ready to crush it today?</p>
-      <button class="btn btn-fire" onclick="showScreen('workout'); startNewWorkout()">
+      <button class="btn btn-fire" onclick="handleStartWorkout()">
         ⚡ START WORKOUT
       </button>
     </div>
@@ -990,14 +990,13 @@
     <div class="section-title" style="margin-top:16px">Recent Activity</div>
     <div id="homeRecent">
       <div class="empty">
-        <div class="empty-icon">🏋️</div>
         <div class="empty-title">No workouts yet</div>
         <p>Smash your first session above!</p>
       </div>
     </div>
 
-    <div style="margin-top:20px;border-radius:var(--radius);overflow:hidden">
-      <video autoplay loop muted playsinline style="width:100%;display:block;border-radius:var(--radius)">
+    <div style="margin-top:20px;display:flex;justify-content:center">
+      <video autoplay loop muted playsinline style="width:20%;display:block;border-radius:var(--radius)">
         <source src="https://raw.githubusercontent.com/BezzBezzBear/ezygains/main/assets/video/squat%20vid.MP4" type="video/mp4">
       </video>
     </div>
@@ -1514,6 +1513,11 @@ function closeModal(id) {
 }
 
 // ===== HOME =====
+function handleStartWorkout() {
+  startNewWorkout();
+  showScreen('workout');
+}
+
 function renderHomeScreen() {
   document.getElementById('statWorkouts').textContent = state.totalWorkouts;
   document.getElementById('statSets').textContent = state.totalSets;
@@ -1524,9 +1528,9 @@ function renderHomeScreen() {
   const greeting = hrs < 12 ? 'MORNING GAINS' : hrs < 17 ? 'LET\'S GET GAINS' : 'EVENING GRIND';
   document.getElementById('heroGreeting').textContent = greeting;
 
-  // Quick routines
+  // Quick routines - show user routines first, then builtin to fill up to 3
   const hr = document.getElementById('homeRoutines');
-  const allRoutines = [...BUILTIN_ROUTINES, ...state.routines];
+  const allRoutines = [...state.routines, ...BUILTIN_ROUTINES];
   hr.innerHTML = allRoutines.slice(0, 3).map(r => `
     <div class="routine-card" onclick="startRoutine('${r.id}')">
       <div class="flex items-center justify-between">
@@ -1542,7 +1546,7 @@ function renderHomeScreen() {
   // Recent
   const rec = document.getElementById('homeRecent');
   if (state.workoutHistory.length === 0) {
-    rec.innerHTML = `<div class="empty"><div class="empty-icon">🏋️</div><div class="empty-title">No workouts yet</div><p>Smash your first session above!</p></div>`;
+    rec.innerHTML = `<div class="empty"><div class="empty-title">No workouts yet</div><p>Smash your first session above!</p></div>`;
   } else {
     rec.innerHTML = state.workoutHistory.slice(-3).reverse().map(w => `
       <div class="card">
