@@ -969,6 +969,8 @@
       </button>
     </div>
 
+    <div id="streakStatus"></div>
+
     <div class="stats-row">
       <div class="stat-card">
         <div class="stat-number" id="statWorkouts">0</div>
@@ -1056,12 +1058,15 @@
           <div class="workout-timer" id="setsCompleted">0</div>
         </div>
       </div>
-
+      <div id="timerStartBar" style="margin-bottom:12px">
+        <button class="btn btn-fire w-full" onclick="startWorkoutTimer()" style="background:linear-gradient(135deg,#39d353,#00a832)">
+          ▶ START TIMER
+        </button>
+      </div>
       <div class="flex gap-8 mb-0" style="margin-bottom:12px">
         <button class="btn btn-ghost" style="flex:1" onclick="openExercisePicker()">+ Add Exercise</button>
         <button class="btn btn-fire" style="flex:1" onclick="finishWorkout()">✅ Finish</button>
       </div>
-
       <div id="activeExercises"></div>
     </div>
   </div>
@@ -1568,6 +1573,23 @@ function closeModal(id) {
 }
 
 // ===== HOME =====
+function bookRestDay() {
+  if (!state.restDays) state.restDays = [];
+  const today = new Date().toDateString();
+  if (!state.restDays.includes(today)) {
+    state.restDays.push(today);
+    // Extend lastWorkoutDate by 1 day to preserve streak
+    const last = new Date(state.lastWorkoutDate);
+    last.setDate(last.getDate() + 1);
+    state.lastWorkoutDate = last.toISOString();
+    saveState();
+    showToast('📅 Rest day booked — streak preserved!');
+    renderHomeScreen();
+  } else {
+    showToast('Rest day already booked for today');
+  }
+}
+
 function handleStartWorkout() {
   startNewWorkout();
   showScreen('workout');
@@ -1582,6 +1604,45 @@ function renderHomeScreen() {
   const hrs = new Date().getHours();
   const greeting = hrs < 12 ? 'MORNING GAINS' : hrs < 17 ? 'LET\'S GET GAINS' : 'EVENING GRIND';
   document.getElementById('heroGreeting').textContent = greeting;
+
+  // Days since last workout + streak status
+  const streakEl = document.getElementById('streakStatus');
+  if (streakEl) {
+    if (!state.lastWorkoutDate) {
+      streakEl.innerHTML = '';
+    } else {
+      const last = new Date(state.lastWorkoutDate);
+      last.setHours(0,0,0,0);
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const daysSince = Math.floor((today - last) / 86400000);
+      const restDaysLeft = 2 - daysSince;
+
+      let msg = '';
+      let colour = 'var(--green)';
+      if (daysSince === 0) {
+        msg = '✅ Worked out today — great work!';
+      } else if (daysSince === 1) {
+        msg = `💤 Rest day 1 of 2 — ${restDaysLeft + 1} rest day left`;
+        colour = 'var(--fire3)';
+      } else if (daysSince === 2) {
+        msg = `⚠️ Rest day 2 of 2 — work out today to keep your streak!`;
+        colour = 'var(--fire2)';
+      } else if (daysSince === 3) {
+        msg = `🔴 Streak at risk — work out now or it resets!`;
+        colour = 'var(--fire1)';
+      } else {
+        msg = `💔 Streak lost — ${daysSince} days since last workout. Start fresh today!`;
+        colour = 'var(--grey)';
+      }
+
+      streakEl.innerHTML = `
+        <div class="card" style="margin-bottom:14px;border-color:${colour}30;text-align:center">
+          <div class="fs-14 font-cond fw-700" style="color:${colour}">${msg}</div>
+          ${daysSince > 0 && daysSince <= 3 ? `<button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="bookRestDay()">📅 Book a Rest Day</button>` : ''}
+        </div>`;
+    }
+  }
 
   // Quick routines - show user routines first, then builtin to fill up to 3
   const hr = document.getElementById('homeRoutines');
@@ -1918,9 +1979,10 @@ function startNewWorkout(routineName, exerciseIds) {
   state.currentWorkout = {
     id: 'w_' + Date.now(),
     name: routineName || 'My Workout',
-    startTime: Date.now(),
+    startTime: null,
     exercises: [],
-    completedSets: 0
+    completedSets: 0,
+    timerRunning: false
   };
 
   if (exerciseIds) {
@@ -1929,6 +1991,18 @@ function startNewWorkout(routineName, exerciseIds) {
 
   state.workoutSeconds = 0;
   if (state.workoutTimer) clearInterval(state.workoutTimer);
+  renderWorkoutScreen();
+}
+
+function startWorkoutTimer() {
+  if (!state.currentWorkout || state.currentWorkout.timerRunning) return;
+  state.currentWorkout.timerRunning = true;
+  state.currentWorkout.startTime = Date.now();
+
+  // Hide the start button
+  const bar = document.getElementById('timerStartBar');
+  if (bar) bar.style.display = 'none';
+
   state.workoutTimer = setInterval(() => {
     state.workoutSeconds++;
     const m = String(Math.floor(state.workoutSeconds / 60)).padStart(2,'0');
@@ -1936,8 +2010,6 @@ function startNewWorkout(routineName, exerciseIds) {
     const el = document.getElementById('workoutTimer');
     if (el) el.textContent = `${m}:${s}`;
   }, 1000);
-
-  renderWorkoutScreen();
 }
 
 function addExerciseToWorkout(exId) {
@@ -1960,6 +2032,9 @@ function renderWorkoutScreen() {
   if (!hasActive) {
     renderRoutineList();
   } else {
+    // Show/hide timer start button
+    const bar = document.getElementById('timerStartBar');
+    if (bar) bar.style.display = state.currentWorkout.timerRunning ? 'none' : 'block';
     renderActiveExercises();
   }
 }
@@ -2151,12 +2226,25 @@ function finishWorkout() {
   state.totalWorkouts++;
   state.totalSets += completedSets;
 
-  // Streak
-  const today = new Date().toDateString();
-  const last = state.lastWorkoutDate ? new Date(state.lastWorkoutDate).toDateString() : null;
-  const yesterday = new Date(Date.now() - 86400000).toDateString();
-  if (last === yesterday) state.streak++;
-  else if (last !== today) state.streak = 1;
+  // Streak logic
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const last = state.lastWorkoutDate ? new Date(state.lastWorkoutDate) : null;
+  if (last) last.setHours(0,0,0,0);
+  const daysSinceLast = last ? Math.floor((today - last) / 86400000) : null;
+
+  if (daysSinceLast === null) {
+    // First ever workout
+    state.streak = 1;
+  } else if (daysSinceLast === 0) {
+    // Already worked out today — streak unchanged
+  } else if (daysSinceLast <= 3) {
+    // Within 3 days (allows up to 2 rest days) — streak continues
+    state.streak++;
+  } else {
+    // More than 2 rest days — streak broken
+    state.streak = 1;
+  }
   state.lastWorkoutDate = new Date().toISOString();
 
   // Save workout - store full exercise detail for history tracking
