@@ -1201,9 +1201,10 @@
     </div>
     <div class="form-group">
       <label>Category</label>
-      <select id="newExCat">
+      <select id="newExCat" onchange="updateTrackingType()">
         <option>Legs</option><option>Arms</option><option>Chest</option>
-        <option>Back</option><option>Shoulders</option><option>Core</option><option>Kettlebell</option>
+        <option>Back</option><option>Shoulders</option><option>Core</option>
+        <option>Kettlebell</option><option>Cardio</option>
       </select>
     </div>
     <div class="form-group">
@@ -1211,6 +1212,15 @@
       <select id="newExEquip">
         <option>Machine</option><option>Cable</option><option>Barbell</option>
         <option>Dumbbell</option><option>Kettlebell</option><option>Bodyweight</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Tracking Type</label>
+      <select id="newExTracking">
+        <option value="weights">Weights &amp; Reps</option>
+        <option value="cardio">Cardio: Time &amp; Distance / Level</option>
+        <option value="reps">Reps Only (bodyweight)</option>
+        <option value="time">Time Only (holds/planks)</option>
       </select>
     </div>
     <div class="form-group">
@@ -1271,6 +1281,7 @@
       <div class="pill" data-cat="Shoulders" onclick="setPickerCat(this,'Shoulders')">Shoulders</div>
       <div class="pill" data-cat="Core" onclick="setPickerCat(this,'Core')">Core</div>
       <div class="pill" data-cat="Kettlebell" onclick="setPickerCat(this,'Kettlebell')">Kettlebell</div>
+      <div class="pill" data-cat="Cardio" onclick="setPickerCat(this,'Cardio')">❤️ Cardio</div>
     </div>
     <div id="pickerList" style="max-height:50vh;overflow-y:auto"></div>
   </div>
@@ -1772,7 +1783,10 @@ function openExerciseModal(id) {
   } else {
     iconEl.textContent = ex.icon || '💪';
   }
-  document.getElementById('modalExMeta').innerHTML = `<span class="exercise-cat">${ex.cat}</span><span>${ex.equip}</span><span class="text-fire fs-12" style="opacity:0.7">✏️ tap name to edit</span>`;
+  const trackingLabel = ex.trackingType === 'cardio' ? '❤️ Cardio' :
+    ex.trackingType === 'reps' ? '🔄 Reps Only' :
+    ex.trackingType === 'time' ? '⏱ Time' : '🏋️ Weights & Reps';
+  document.getElementById('modalExMeta').innerHTML = `<span class="exercise-cat">${ex.cat}</span><span>${ex.equip}</span><span style="color:var(--fire2);font-size:11px">${trackingLabel}</span><span class="text-fire fs-12" style="opacity:0.7">✏️ tap name to edit</span>`;
   document.getElementById('modalExDesc').textContent = ex.desc || 'No description available.';
   document.getElementById('modalExSets').textContent = ex.sets || '3';
   document.getElementById('modalExReps').textContent = ex.reps || '10-12';
@@ -1936,10 +1950,20 @@ function previewPhoto(inputId, previewId) {
   reader.readAsDataURL(file);
 }
 
+function updateTrackingType() {
+  const cat = document.getElementById('newExCat')?.value;
+  const trackEl = document.getElementById('newExTracking');
+  if (!trackEl) return;
+  if (cat === 'Cardio') trackEl.value = 'cardio';
+  else if (cat === 'Core') trackEl.value = 'reps';
+  else trackEl.value = 'weights';
+}
+
 function saveCustomExercise() {
   const name = document.getElementById('newExName').value.trim();
   if (!name) { showToast('Please enter an exercise name'); return; }
 
+  const tracking = document.getElementById('newExTracking')?.value || 'weights';
   const id = 'custom_' + Date.now();
   const ex = {
     id,
@@ -1949,7 +1973,9 @@ function saveCustomExercise() {
     icon: '⚙️',
     desc: document.getElementById('newExDesc').value,
     sets: '3', reps: '10-12',
-    custom: true
+    custom: true,
+    isCardio: tracking === 'cardio',
+    trackingType: tracking
   };
 
   // Photo
@@ -2077,21 +2103,19 @@ function renderActiveExercises() {
 
   el.innerHTML = state.currentWorkout.exercises.map((ex, ei) => {
     const exData = state.exercises.find(e => e.id === ex.exId);
-    const isCardio = exData?.isCardio || false;
+    const trackingType = exData?.trackingType || (exData?.isCardio ? 'cardio' : 'weights');
+    const isCardio = trackingType === 'cardio';
+    const isRepsOnly = trackingType === 'reps';
+    const isTimeOnly = trackingType === 'time';
 
-    const headers = isCardio
-      ? `<div class="fs-12 text-grey font-cond" style="letter-spacing:1px">SESSION</div>
-         <div class="fs-12 text-grey font-cond" style="letter-spacing:1px;text-align:center">MINS</div>
-         <div class="fs-12 text-grey font-cond" style="letter-spacing:1px;text-align:center">DIST/LVL</div>
-         <div></div>`
-      : `<div class="fs-12 text-grey font-cond" style="letter-spacing:1px">SET</div>
-         <div class="fs-12 text-grey font-cond" style="letter-spacing:1px;text-align:center">KG</div>
-         <div class="fs-12 text-grey font-cond" style="letter-spacing:1px;text-align:center">REPS</div>
-         <div></div>`;
+    let headers, setRowFn;
 
-    const setRows = ex.sets.map((set, si) => {
-      if (isCardio) {
-        return `
+    if (isCardio) {
+      headers = `<div class="fs-12 text-grey font-cond" style="letter-spacing:1px">SESSION</div>
+                 <div class="fs-12 text-grey font-cond" style="letter-spacing:1px;text-align:center">MINS</div>
+                 <div class="fs-12 text-grey font-cond" style="letter-spacing:1px;text-align:center">DIST/LVL</div>
+                 <div></div>`;
+      setRowFn = (set, si) => `
         <div class="set-row">
           <div class="set-num">${si + 1}</div>
           <input class="set-input" type="number" inputmode="decimal" placeholder="mins" step="1" min="0"
@@ -2100,12 +2124,38 @@ function renderActiveExercises() {
           <input class="set-input" type="text" inputmode="decimal" placeholder="km/lvl"
             value="${set.distLevel || ''}" onchange="updateSet(${ei},${si},'distLevel',this.value)"
             ${set.done ? 'disabled' : ''} style="${set.done ? 'opacity:0.5' : ''}">
-          <button class="set-done ${set.done ? 'completed' : ''}" onclick="toggleSetDone(${ei},${si})">
-            ${set.done ? '✓' : '○'}
-          </button>
+          <button class="set-done ${set.done ? 'completed' : ''}" onclick="toggleSetDone(${ei},${si})">${set.done ? '✓' : '○'}</button>
         </div>`;
-      } else {
-        return `
+    } else if (isRepsOnly) {
+      headers = `<div class="fs-12 text-grey font-cond" style="letter-spacing:1px">SET</div>
+                 <div class="fs-12 text-grey font-cond" style="letter-spacing:1px;text-align:center;grid-column:span 2">REPS</div>
+                 <div></div>`;
+      setRowFn = (set, si) => `
+        <div class="set-row">
+          <div class="set-num">${si + 1}</div>
+          <input class="set-input" type="number" inputmode="numeric" placeholder="reps" style="grid-column:span 2"
+            value="${set.reps || ''}" onchange="updateSet(${ei},${si},'reps',this.value)"
+            ${set.done ? 'disabled' : ''} style="${set.done ? 'opacity:0.5' : ''}">
+          <button class="set-done ${set.done ? 'completed' : ''}" onclick="toggleSetDone(${ei},${si})">${set.done ? '✓' : '○'}</button>
+        </div>`;
+    } else if (isTimeOnly) {
+      headers = `<div class="fs-12 text-grey font-cond" style="letter-spacing:1px">SET</div>
+                 <div class="fs-12 text-grey font-cond" style="letter-spacing:1px;text-align:center;grid-column:span 2">SECONDS</div>
+                 <div></div>`;
+      setRowFn = (set, si) => `
+        <div class="set-row">
+          <div class="set-num">${si + 1}</div>
+          <input class="set-input" type="number" inputmode="numeric" placeholder="secs" style="grid-column:span 2"
+            value="${set.duration || ''}" onchange="updateSet(${ei},${si},'duration',this.value)"
+            ${set.done ? 'disabled' : ''} style="${set.done ? 'opacity:0.5' : ''}">
+          <button class="set-done ${set.done ? 'completed' : ''}" onclick="toggleSetDone(${ei},${si})">${set.done ? '✓' : '○'}</button>
+        </div>`;
+    } else {
+      headers = `<div class="fs-12 text-grey font-cond" style="letter-spacing:1px">SET</div>
+                 <div class="fs-12 text-grey font-cond" style="letter-spacing:1px;text-align:center">KG</div>
+                 <div class="fs-12 text-grey font-cond" style="letter-spacing:1px;text-align:center">REPS</div>
+                 <div></div>`;
+      setRowFn = (set, si) => `
         <div class="set-row">
           <div class="set-num">${si + 1}</div>
           <input class="set-input" type="number" inputmode="decimal" placeholder="kg" step="0.5" min="0"
@@ -2114,12 +2164,11 @@ function renderActiveExercises() {
           <input class="set-input" type="number" inputmode="numeric" placeholder="reps"
             value="${set.reps || ''}" onchange="updateSet(${ei},${si},'reps',this.value)"
             ${set.done ? 'disabled' : ''} style="${set.done ? 'opacity:0.5' : ''}">
-          <button class="set-done ${set.done ? 'completed' : ''}" onclick="toggleSetDone(${ei},${si})">
-            ${set.done ? '✓' : '○'}
-          </button>
+          <button class="set-done ${set.done ? 'completed' : ''}" onclick="toggleSetDone(${ei},${si})">${set.done ? '✓' : '○'}</button>
         </div>`;
-      }
-    }).join('');
+    }
+
+    const setRows = ex.sets.map((set, si) => setRowFn(set, si)).join('');
 
     // Last session preview
     const lastSession = state.workoutHistory
